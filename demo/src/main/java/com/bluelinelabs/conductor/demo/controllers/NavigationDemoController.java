@@ -2,11 +2,14 @@ package com.bluelinelabs.conductor.demo.controllers;
 
 import android.os.Bundle;
 import androidx.annotation.NonNull;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.bluelinelabs.conductor.Controller;
 import com.bluelinelabs.conductor.ControllerChangeHandler;
 import com.bluelinelabs.conductor.ControllerChangeType;
 import com.bluelinelabs.conductor.RouterTransaction;
@@ -102,13 +105,14 @@ public class NavigationDemoController extends BaseController {
             view.findViewById(R.id.btn_next).setEnabled(enabled);
             view.findViewById(R.id.btn_up).setEnabled(enabled);
             view.findViewById(R.id.btn_pop_to_root).setEnabled(enabled);
+            view.findViewById(R.id.btn_pop_3).setEnabled(enabled);
         }
     }
 
     @OnClick(R.id.btn_next) void onNextClicked() {
         getRouter().pushController(RouterTransaction.with(new NavigationDemoController(index + 1, displayUpMode.getDisplayUpModeForChild()))
-                .pushChangeHandler(new HorizontalChangeHandler())
-                .popChangeHandler(new HorizontalChangeHandler()));
+                .pushChangeHandler(new HorizontalChangeHandler(false))
+                .popChangeHandler(new HorizontalChangeHandler(false)));
     }
 
     @OnClick(R.id.btn_up) void onUpClicked() {
@@ -117,5 +121,18 @@ public class NavigationDemoController extends BaseController {
 
     @OnClick(R.id.btn_pop_to_root) void onPopToRootClicked() {
         getRouter().popToRoot();
+    }
+
+    @OnClick(R.id.btn_pop_3) void popThirdController() {
+        Controller controller = getRouter().getBackstack().get(3).controller();
+        controller.addLifecycleListener(new LifecycleListener() {
+            @Override
+            public void preDestroy(@NonNull Controller controller) {
+                super.preDestroy(controller);
+                Log.d("pop3", "preDestroy");
+            }
+        });
+
+        getRouter().popController(controller);
     }
 }
