@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bluelinelabs.conductor.Controller;
 import com.bluelinelabs.conductor.ControllerChangeHandler;
 import com.bluelinelabs.conductor.ControllerChangeType;
 import com.bluelinelabs.conductor.RouterTransaction;
@@ -187,7 +188,10 @@ public class HomeController extends BaseController {
                         .popChangeHandler(new FadeChangeHandler()));
                 break;
             case CHILD_CONTROLLERS:
-                getRouter().pushController(RouterTransaction.with(new ParentController())
+                Controller parentController = new ParentController();
+                parentController.setRetainViewMode(RetainViewMode.RETAIN_DETACH);
+
+                getRouter().pushController(RouterTransaction.with(parentController).tag("parentTag")
                         .pushChangeHandler(new FadeChangeHandler())
                         .popChangeHandler(new FadeChangeHandler()));
                 break;
