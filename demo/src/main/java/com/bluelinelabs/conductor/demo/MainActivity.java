@@ -1,5 +1,6 @@
 package com.bluelinelabs.conductor.demo;
 
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -8,7 +9,9 @@ import android.view.ViewGroup;
 import com.bluelinelabs.conductor.Conductor;
 import com.bluelinelabs.conductor.Router;
 import com.bluelinelabs.conductor.RouterTransaction;
+import com.bluelinelabs.conductor.changehandler.SimpleSwapChangeHandler;
 import com.bluelinelabs.conductor.demo.controllers.HomeController;
+import com.bluelinelabs.conductor.demo.controllers.TextController;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -33,6 +36,14 @@ public final class MainActivity extends AppCompatActivity implements ActionBarPr
         if (!router.hasRootController()) {
             router.setRoot(RouterTransaction.with(new HomeController()));
         }
+
+        // uncomment to test #287 (the comment related to performPendingControllerChanges)
+//        if (router.getBackstackSize() == 1) {
+//            router.pushController(RouterTransaction.with(new TextController("Splash 1")));
+//            router.pushController(RouterTransaction.with(new TextController("Splash 2")));
+//        }
+//
+//        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 
     @Override
