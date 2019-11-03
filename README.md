@@ -1,5 +1,16 @@
 [![Travis Build](https://travis-ci.org/bluelinelabs/Conductor.svg)](https://travis-ci.org/bluelinelabs/Conductor) [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-Conductor-brightgreen.svg?style=flat)](http://android-arsenal.com/details/1/3361) [![Javadocs](http://javadoc.io/badge/com.bluelinelabs/conductor.svg)](http://javadoc.io/doc/com.bluelinelabs/conductor)
 
+# This Fork Diff
+
+Here I store the fixes of bugs I found in the original Conductor. Each fix is pushed in a separate branch like **fix_563**. The **develop** branch has all the bug fixes with additional demo project changes.
+
+There are the list of pull requests per fix:
+
+|   Pull Request   |   Status  |
+|-----------|-----------|
+https://github.com/bluelinelabs/Conductor/pull/569 | Waiting for Review
+
+
 # Conductor
 
 A small, yet full-featured framework that allows building View-based Android applications. Conductor provides a light-weight wrapper around standard Android Views that does just about everything you'd want:
