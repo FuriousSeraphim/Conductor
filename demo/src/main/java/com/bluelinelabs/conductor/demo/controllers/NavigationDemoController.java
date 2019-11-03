@@ -105,7 +105,9 @@ public class NavigationDemoController extends BaseController {
             view.findViewById(R.id.btn_next).setEnabled(enabled);
             view.findViewById(R.id.btn_up).setEnabled(enabled);
             view.findViewById(R.id.btn_pop_to_root).setEnabled(enabled);
-            view.findViewById(R.id.btn_pop_3).setEnabled(enabled);
+
+            boolean canPopThirdController = getRouter().getBackstackSize() > 3;
+            view.findViewById(R.id.btn_pop_3).setEnabled(enabled && canPopThirdController);
         }
     }
 
@@ -124,6 +126,7 @@ public class NavigationDemoController extends BaseController {
     }
 
     @OnClick(R.id.btn_pop_3) void popThirdController() {
+        // to reproduce #563
         Controller controller = getRouter().getBackstack().get(3).controller();
         controller.addLifecycleListener(new LifecycleListener() {
             @Override
