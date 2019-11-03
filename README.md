@@ -9,6 +9,7 @@ There are the list of pull requests per fix:
 |   Pull Request   |   Status  |
 |-----------|-----------|
 https://github.com/bluelinelabs/Conductor/pull/569 | Waiting for Review
+https://github.com/bluelinelabs/Conductor/pull/570 | Waiting for Review
 
 
 # Conductor
