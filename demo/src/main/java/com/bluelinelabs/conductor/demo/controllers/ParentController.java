@@ -2,6 +2,8 @@ package com.bluelinelabs.conductor.demo.controllers;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
+
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +41,7 @@ public class ParentController extends BaseController {
             @Override
             public void onClick(View v) {
                 Controller controller = new TextController("Next Controller");
-                controller.setRetainViewMode(RetainViewMode.RETAIN_DETACH);
+                //controller.setRetainViewMode(RetainViewMode.RETAIN_DETACH);
 
                 getRouter().pushController(RouterTransaction.with(controller)
                         .pushChangeHandler(new HorizontalChangeHandler())
@@ -60,10 +62,10 @@ public class ParentController extends BaseController {
     private void addChild(final int index) {
         @IdRes final int frameId = getResources().getIdentifier("child_content_" + (index + 1), "id", getActivity().getPackageName());
         final ViewGroup container = (ViewGroup)getView().findViewById(frameId);
-        final Router childRouter = getChildRouter(container).setPopsLastView(true);
+        final Router childRouter = getChildRouter(container);//.setPopsLastView(true);
 
         if (!childRouter.hasRootController()) {
-            ChildController childController = new ChildController("Child Controller #" + index, ColorUtil.getMaterialColor(getResources(), index), false);
+            ChildController childController = new ChildController("Child Controller #" + index, Color.TRANSPARENT /*ColorUtil.getMaterialColor(getResources(), index)*/, false);
 
             childController.addLifecycleListener(new LifecycleListener() {
                 @Override
