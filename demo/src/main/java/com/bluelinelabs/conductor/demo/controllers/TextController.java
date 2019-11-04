@@ -40,6 +40,12 @@ public class TextController extends BaseController {
     public void onViewBound(@NonNull View view) {
         super.onViewBound(view);
         textView.setText(getArgs().getString(KEY_TEXT));
+        textView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getRouter().popToTag("parentTag");
+            }
+        });
     }
 
 }

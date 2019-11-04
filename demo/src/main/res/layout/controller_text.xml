@@ -6,4 +6,5 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:padding="@dimen/activity_horizontal_margin"
+    android:background="@color/white"
     />
