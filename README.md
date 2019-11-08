@@ -4,12 +4,13 @@
 
 Here I store the fixes of bugs I found in the original Conductor. Each fix is pushed in a separate branch like **fix_563**. The **develop** branch has all the bug fixes with additional demo project changes.
 
-There are the list of pull requests per fix:
+There is the list of pull requests for all the fixes:
 
 |   Pull Request   |   Status  |
 |-----------|-----------|
-https://github.com/bluelinelabs/Conductor/pull/569 | Waiting for Review
-https://github.com/bluelinelabs/Conductor/pull/570 | Waiting for Review
+Fix #563 bug: Controller in the middle of a backstack isn't destroyed after calling popController<br>https://github.com/bluelinelabs/Conductor/pull/569 | Waiting for Review
+Fix Conductor pending changes lock, related to #287 discussion<br>https://github.com/bluelinelabs/Conductor/pull/570 | Waiting for Review
+Fixed having a not attached child controller after popping back to the parent<br>https://github.com/bluelinelabs/Conductor/pull/571 | Waiting for Review
 
 
 # Conductor
