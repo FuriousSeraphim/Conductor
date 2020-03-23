@@ -1,40 +1,41 @@
-package com.bluelinelabs.conductor.internal;
+package com.bluelinelabs.conductor.internal.lifecyclehandler;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application.ActivityLifecycleCallbacks;
-import android.app.Fragment;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.bluelinelabs.conductor.ActivityHostedRouter;
 import com.bluelinelabs.conductor.Router;
+import com.bluelinelabs.conductor.internal.StringSparseArrayParceler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LifecycleHandler extends Fragment implements ActivityLifecycleCallbacks {
+public class LifecycleHandler implements ActivityLifecycleCallbacks {
 
-    private static final String FRAGMENT_TAG = "LifecycleHandler";
+    private static final String ANDROID_X_ACTIVITY = "androidx.fragment.app.FragmentActivity";
+    private static final String SUPPORT_ACTIVITY = "android.support.v4.app.FragmentActivity";
 
-    private static final String KEY_PENDING_PERMISSION_REQUESTS = "LifecycleHandler.pendingPermissionRequests";
-    private static final String KEY_PERMISSION_REQUEST_CODES = "LifecycleHandler.permissionRequests";
-    private static final String KEY_ACTIVITY_REQUEST_CODES = "LifecycleHandler.activityRequests";
-    private static final String KEY_ROUTER_STATE_PREFIX = "LifecycleHandler.routerState";
+    private static final String KEY_PENDING_PERMISSION_REQUESTS = "LifecycleHelper.pendingPermissionRequests";
+    private static final String KEY_PERMISSION_REQUEST_CODES = "LifecycleHelper.permissionRequests";
+    private static final String KEY_ACTIVITY_REQUEST_CODES = "LifecycleHelper.activityRequests";
+    private static final String KEY_ROUTER_STATE_PREFIX = "LifecycleHelper.routerState";
 
     private Activity activity;
     private boolean hasRegisteredCallbacks;
@@ -48,17 +49,13 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     private ArrayList<PendingPermissionRequest> pendingPermissionRequests = new ArrayList<>();
 
     private final Map<Integer, ActivityHostedRouter> routerMap = new HashMap<>();
-
-    public LifecycleHandler() {
-        setRetainInstance(true);
-        setHasOptionsMenu(true);
-    }
+    private final LifecycleHelper helper;
 
     @Nullable
     private static LifecycleHandler findInActivity(@NonNull Activity activity) {
         LifecycleHandler lifecycleHandler = activeLifecycleHandlers.get(activity);
         if (lifecycleHandler == null) {
-            lifecycleHandler = (LifecycleHandler)activity.getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
+            lifecycleHandler = findHandler(activity);
         }
         if (lifecycleHandler != null) {
             lifecycleHandler.registerActivityListener(activity);
@@ -70,11 +67,14 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     public static LifecycleHandler install(@NonNull Activity activity) {
         LifecycleHandler lifecycleHandler = findInActivity(activity);
         if (lifecycleHandler == null) {
-            lifecycleHandler = new LifecycleHandler();
-            activity.getFragmentManager().beginTransaction().add(lifecycleHandler, FRAGMENT_TAG).commit();
+            lifecycleHandler = installHandler(activity);
         }
         lifecycleHandler.registerActivityListener(activity);
         return lifecycleHandler;
+    }
+
+    LifecycleHandler(@NonNull LifecycleHelper lifecycleHelper) {
+        helper = lifecycleHelper;
     }
 
     @NonNull
@@ -119,17 +119,14 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
             hasRegisteredCallbacks = true;
             activity.getApplication().registerActivityLifecycleCallbacks(this);
 
-            // Since Fragment transactions are async, we have to keep an <Activity, LifecycleHandler> map in addition
-            // to trying to find the LifecycleHandler fragment in the Activity to handle the case of the developer
+            // Since Fragment transactions are async, we have to keep an <Activity, LifecycleHelper> map in addition
+            // to trying to find the LifecycleHelper fragment in the Activity to handle the case of the developer
             // trying to immediately get > 1 router in the same Activity. See issue #299.
             activeLifecycleHandlers.put(activity, this);
         }
     }
 
-    @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
         if (savedInstanceState != null) {
             StringSparseArrayParceler permissionParcel = savedInstanceState.getParcelable(KEY_PERMISSION_REQUEST_CODES);
             permissionRequestMap = permissionParcel != null ? permissionParcel.getStringSparseArray() : new SparseArray<String>();
@@ -142,19 +139,13 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         }
     }
 
-    @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
         outState.putParcelable(KEY_PERMISSION_REQUEST_CODES, new StringSparseArrayParceler(permissionRequestMap));
         outState.putParcelable(KEY_ACTIVITY_REQUEST_CODES, new StringSparseArrayParceler(activityRequestMap));
         outState.putParcelableArrayList(KEY_PENDING_PERMISSION_REQUESTS, pendingPermissionRequests);
     }
 
-    @Override
     public void onDestroy() {
-        super.onDestroy();
-
         if (activity != null) {
             activity.getApplication().unregisterActivityLifecycleCallbacks(this);
             activeLifecycleHandlers.remove(activity);
@@ -163,27 +154,15 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         }
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach() {
         destroyed = false;
         setAttached();
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        destroyed = false;
-        setAttached();
-    }
-
-    @Override
     public void onDetach() {
-        super.onDetach();
-
         attached = false;
         destroyRouters();
+        getLifecycleActivity();
     }
 
     private void setAttached() {
@@ -213,10 +192,7 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         }
     }
 
-    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
         String instanceId = activityRequestMap.get(requestCode);
         if (instanceId != null) {
             for (Router router : getRouters()) {
@@ -225,10 +201,7 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         }
     }
 
-    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
         String instanceId = permissionRequestMap.get(requestCode);
         if (instanceId != null) {
             for (Router router : getRouters()) {
@@ -237,36 +210,29 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         }
     }
 
-    @Override
-    public boolean shouldShowRequestPermissionRationale(@NonNull String permission) {
+    public Boolean shouldShowRequestPermissionRationale(@NonNull String permission) {
         for (Router router : getRouters()) {
             Boolean handled = router.handleRequestedPermission(permission);
             if (handled != null) {
                 return handled;
             }
         }
-        return super.shouldShowRequestPermissionRationale(permission);
+
+        return null;
     }
 
-    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-
         for (Router router : getRouters()) {
             router.onCreateOptionsMenu(menu, inflater);
         }
     }
 
-    @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-
         for (Router router : getRouters()) {
             router.onPrepareOptionsMenu(menu);
         }
     }
 
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         for (Router router : getRouters()) {
             if (router.onOptionsItemSelected(item)) {
@@ -274,7 +240,39 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
             }
         }
 
-        return super.onOptionsItemSelected(item);
+        return false;
+    }
+
+    private static boolean useAndroidX(@NonNull Activity activity) {
+        Class cls = activity.getClass().getSuperclass();
+
+        while (cls != null) {
+            if (cls.getCanonicalName().equals(ANDROID_X_ACTIVITY) || cls.getCanonicalName().equals(SUPPORT_ACTIVITY)) {
+                return true;
+            }
+            cls = cls.getSuperclass();
+        }
+
+        return false;
+    }
+
+    @Nullable
+    private static LifecycleHandler findHandler(@NonNull Activity activity) {
+        LifecycleHelper helper;
+
+        if (useAndroidX(activity)) {
+            helper = AndroidXHelper.findInActivity(activity);
+        } else {
+            helper = PlatformHelper.findInActivity(activity);
+        }
+
+        return helper != null ? helper.lifecycleHandler() : null;
+    }
+
+    private static LifecycleHandler installHandler(@NonNull Activity activity) {
+        LifecycleHelper helper = useAndroidX(activity) ? new AndroidXHelper() : new PlatformHelper();
+        helper.install(activity);
+        return helper.lifecycleHandler();
     }
 
     public void registerForActivityResult(@NonNull String instanceId, int requestCode) {
@@ -289,29 +287,32 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         }
     }
 
+    public void startActivity(@NonNull Intent intent) {
+        helper.startActivity(intent);
+    }
+
     public void startActivityForResult(@NonNull String instanceId, @NonNull Intent intent, int requestCode) {
         registerForActivityResult(instanceId, requestCode);
-        startActivityForResult(intent, requestCode);
+        helper.startActivityForResult(intent, requestCode);
     }
 
     public void startActivityForResult(@NonNull String instanceId, @NonNull Intent intent, int requestCode, @Nullable Bundle options) {
         registerForActivityResult(instanceId, requestCode);
-        startActivityForResult(intent, requestCode, options);
+        helper.startActivityForResult(intent, requestCode, options);
     }
 
-    @TargetApi(Build.VERSION_CODES.N)
     public void startIntentSenderForResult(@NonNull String instanceId, @NonNull IntentSender intent, int requestCode,
                                            @Nullable Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags,
                                            @Nullable Bundle options) throws IntentSender.SendIntentException {
         registerForActivityResult(instanceId, requestCode);
-        startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+        helper.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
     }
 
     @TargetApi(Build.VERSION_CODES.M)
     public void requestPermissions(@NonNull String instanceId, @NonNull String[] permissions, int requestCode) {
         if (attached) {
             permissionRequestMap.put(requestCode, instanceId);
-            requestPermissions(permissions, requestCode);
+            helper.requestPermissions(permissions, requestCode);
         } else {
             pendingPermissionRequests.add(new PendingPermissionRequest(instanceId, permissions, requestCode));
         }
@@ -319,7 +320,7 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        if (this.activity == null && findInActivity(activity) == LifecycleHandler.this) {
+        if (this.activity == null && findInActivity(activity) == this) {
             this.activity = activity;
 
             for (ActivityHostedRouter router : new ArrayList<>(routerMap.values())) {
@@ -384,6 +385,18 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     @Override
     public void onActivityDestroyed(Activity activity) {
         activeLifecycleHandlers.remove(activity);
+//        if (this.activity == activity) {
+//            if (activity.isChangingConfigurations()) {
+//                destroyRouters();
+//                this.activity = null;
+//            } else {
+//                onDestroy();
+//            }
+//        }
+    }
+
+    public void invalidateOptionsMenu() {
+        helper.invalidateOptionsMenu();
     }
 
     private void prepareForHostDetachIfNeeded() {
