@@ -1,8 +1,9 @@
 package com.bluelinelabs.conductor.support;
 
-import android.app.Activity;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import android.util.SparseArray;
 import android.widget.FrameLayout;
 
@@ -29,9 +30,9 @@ public class StateSaveTests {
     private FakePager pager;
     private RouterPagerAdapter pagerAdapter;
 
-    public void createActivityController(Bundle savedInstanceState) {
-        ActivityController<Activity> activityController = Robolectric.buildActivity(Activity.class).create().start().resume();
-        Router router = Conductor.attachRouter(activityController.get(), new FrameLayout(activityController.get()), savedInstanceState);
+    public void createActivityController() {
+        ActivityController<AppCompatActivity> activityController = Robolectric.buildActivity(AppCompatActivity.class).create().start().resume();
+        Router router = Conductor.attachRouter(activityController.get(), new FrameLayout(activityController.get()));
         TestController controller = new TestController();
         router.setRoot(RouterTransaction.with(controller));
 
@@ -57,7 +58,7 @@ public class StateSaveTests {
 
     @Before
     public void setup() {
-        createActivityController(null);
+        createActivityController();
     }
 
     @Test

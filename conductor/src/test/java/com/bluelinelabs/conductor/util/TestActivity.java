@@ -1,11 +1,22 @@
 package com.bluelinelabs.conductor.util;
 
-import android.app.Activity;
+import android.os.Bundle;
 
-public class TestActivity extends Activity {
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.bluelinelabs.conductor.R;
+
+public class TestActivity extends AppCompatActivity {
 
     public boolean isChangingConfigurations = false;
     public boolean isDestroying = false;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setTheme(R.style.Theme_AppCompat);
+    }
 
     @Override
     public boolean isChangingConfigurations() {

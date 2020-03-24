@@ -16,9 +16,9 @@ ext {
     roboelectricVersion = '4.3.1'
     lintVersion = '26.1.2'
 
-    material = "com.google.android.material:material:1.0.0"
-    androidxAnnotations = "androidx.annotation:annotation:1.0.0"
-    androidxAppCompat = "androidx.appcompat:appcompat:1.0.0"
+    material = "com.google.android.material:material:1.1.0"
+    androidxAnnotations = "androidx.annotation:annotation:1.1.0"
+    androidxAppCompat = "androidx.appcompat:appcompat:1.1.0"
 
     butterknife = "com.jakewharton:butterknife:$butterknifeVersion"
     butterknifeCompiler = "com.jakewharton:butterknife-compiler:$butterknifeVersion"

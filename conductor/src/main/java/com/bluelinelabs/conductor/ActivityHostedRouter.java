@@ -10,7 +10,6 @@ import androidx.annotation.Nullable;
 import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListener;
-import com.bluelinelabs.conductor.internal.lifecyclehandler.LifecycleHandler;
 import com.bluelinelabs.conductor.internal.TransactionIndexer;
 
 import java.util.List;
@@ -53,7 +52,7 @@ public class ActivityHostedRouter extends Router {
 
     @Override @Nullable
     public Activity getActivity() {
-        return lifecycleHandler != null ? lifecycleHandler.getLifecycleActivity() : null;
+        return lifecycleHandler != null ? lifecycleHandler.getActivity() : null;
     }
 
     @Override
