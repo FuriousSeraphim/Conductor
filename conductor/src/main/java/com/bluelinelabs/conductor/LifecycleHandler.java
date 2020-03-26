@@ -1,9 +1,7 @@
-package com.bluelinelabs.conductor.internal;
+package com.bluelinelabs.conductor;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.Application.ActivityLifecycleCallbacks;
-import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -11,84 +9,77 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 
-import com.bluelinelabs.conductor.ActivityHostedRouter;
-import com.bluelinelabs.conductor.Router;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+
+import com.bluelinelabs.conductor.internal.StringSparseArrayParceler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LifecycleHandler extends Fragment implements ActivityLifecycleCallbacks {
+public class LifecycleHandler extends Fragment {
 
-    private static final String FRAGMENT_TAG = "LifecycleHandler";
-
+    private static final String HANDLER_FRAGMENT_TAG = "LifecycleHandler";
     private static final String KEY_PENDING_PERMISSION_REQUESTS = "LifecycleHandler.pendingPermissionRequests";
     private static final String KEY_PERMISSION_REQUEST_CODES = "LifecycleHandler.permissionRequests";
     private static final String KEY_ACTIVITY_REQUEST_CODES = "LifecycleHandler.activityRequests";
     private static final String KEY_ROUTER_STATE_PREFIX = "LifecycleHandler.routerState";
+    private static final String KEY_LOCAL_STATE = "LifecycleHandler.localState";
 
-    private Activity activity;
-    private boolean hasRegisteredCallbacks;
     private boolean destroyed;
     private boolean attached;
     private boolean hasPreparedForHostDetach;
 
-    private static final Map<Activity, LifecycleHandler> activeLifecycleHandlers = new HashMap<>();
     private SparseArray<String> permissionRequestMap = new SparseArray<>();
     private SparseArray<String> activityRequestMap = new SparseArray<>();
     private ArrayList<PendingPermissionRequest> pendingPermissionRequests = new ArrayList<>();
 
     private final Map<Integer, ActivityHostedRouter> routerMap = new HashMap<>();
+    private final Bundle localState = new Bundle();
+
+    @NonNull
+    public static LifecycleHandler install(@NonNull AppCompatActivity activity) {
+        FragmentManager fragmentManager = activity.getSupportFragmentManager();
+        Fragment existingHandler = fragmentManager.findFragmentByTag(HANDLER_FRAGMENT_TAG);
+        if (existingHandler instanceof LifecycleHandler) {
+            return (LifecycleHandler) existingHandler;
+        } else {
+            LifecycleHandler handler = new LifecycleHandler();
+            fragmentManager.beginTransaction().add(handler, HANDLER_FRAGMENT_TAG).commit();
+            return handler;
+        }
+    }
+
+    private static int getRouterHashKey(@NonNull ViewGroup viewGroup) {
+        return viewGroup.getId();
+    }
 
     public LifecycleHandler() {
         setRetainInstance(true);
         setHasOptionsMenu(true);
     }
 
-    @Nullable
-    private static LifecycleHandler findInActivity(@NonNull Activity activity) {
-        LifecycleHandler lifecycleHandler = activeLifecycleHandlers.get(activity);
-        if (lifecycleHandler == null) {
-            lifecycleHandler = (LifecycleHandler)activity.getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
-        }
-        if (lifecycleHandler != null) {
-            lifecycleHandler.registerActivityListener(activity);
-        }
-        return lifecycleHandler;
-    }
-
     @NonNull
-    public static LifecycleHandler install(@NonNull Activity activity) {
-        LifecycleHandler lifecycleHandler = findInActivity(activity);
-        if (lifecycleHandler == null) {
-            lifecycleHandler = new LifecycleHandler();
-            activity.getFragmentManager().beginTransaction().add(lifecycleHandler, FRAGMENT_TAG).commit();
-        }
-        lifecycleHandler.registerActivityListener(activity);
-        return lifecycleHandler;
-    }
-
-    @NonNull
-    public Router getRouter(@NonNull ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public Router getRouter(@NonNull ViewGroup container) {
         ActivityHostedRouter router = routerMap.get(getRouterHashKey(container));
         if (router == null) {
             router = new ActivityHostedRouter();
             router.setHost(this, container);
 
-            if (savedInstanceState != null) {
-                Bundle routerSavedState = savedInstanceState.getBundle(KEY_ROUTER_STATE_PREFIX + router.getContainerId());
-                if (routerSavedState != null) {
-                    router.restoreInstanceState(routerSavedState);
-                }
+            Bundle routerState = localState.getBundle(KEY_ROUTER_STATE_PREFIX + router.getContainerId());
+            if (routerState != null) {
+                router.restoreInstanceState(routerState);
             }
             routerMap.put(getRouterHashKey(container), router);
         } else {
@@ -103,34 +94,26 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         return new ArrayList<Router>(routerMap.values());
     }
 
-    @Nullable
-    public Activity getLifecycleActivity() {
-        return activity;
-    }
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-    private static int getRouterHashKey(@NonNull ViewGroup viewGroup) {
-        return viewGroup.getId();
-    }
-
-    private void registerActivityListener(@NonNull Activity activity) {
-        this.activity = activity;
-
-        if (!hasRegisteredCallbacks) {
-            hasRegisteredCallbacks = true;
-            activity.getApplication().registerActivityLifecycleCallbacks(this);
-
-            // Since Fragment transactions are async, we have to keep an <Activity, LifecycleHandler> map in addition
-            // to trying to find the LifecycleHandler fragment in the Activity to handle the case of the developer
-            // trying to immediately get > 1 router in the same Activity. See issue #299.
-            activeLifecycleHandlers.put(activity, this);
-        }
+        handleOnCreate(savedInstanceState);
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
+        handleOnCreate(savedInstanceState);
+    }
+
+    private void handleOnCreate(@Nullable Bundle savedInstanceState) {
         if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(KEY_LOCAL_STATE)) {
+                localState.putAll(savedInstanceState.getBundle(KEY_LOCAL_STATE));
+            }
+
             StringSparseArrayParceler permissionParcel = savedInstanceState.getParcelable(KEY_PERMISSION_REQUEST_CODES);
             permissionRequestMap = permissionParcel != null ? permissionParcel.getStringSparseArray() : new SparseArray<String>();
 
@@ -140,53 +123,40 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
             ArrayList<PendingPermissionRequest> pendingRequests = savedInstanceState.getParcelableArrayList(KEY_PENDING_PERMISSION_REQUESTS);
             pendingPermissionRequests = pendingRequests != null ? pendingRequests : new ArrayList<PendingPermissionRequest>();
         }
-    }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        outState.putParcelable(KEY_PERMISSION_REQUEST_CODES, new StringSparseArrayParceler(permissionRequestMap));
-        outState.putParcelable(KEY_ACTIVITY_REQUEST_CODES, new StringSparseArrayParceler(activityRequestMap));
-        outState.putParcelableArrayList(KEY_PENDING_PERMISSION_REQUESTS, pendingPermissionRequests);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-        if (activity != null) {
-            activity.getApplication().unregisterActivityLifecycleCallbacks(this);
-            activeLifecycleHandlers.remove(activity);
-            destroyRouters();
-            activity = null;
+        for (ActivityHostedRouter router : new ArrayList<>(routerMap.values())) {
+            router.onContextAvailable();
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        destroyed = false;
-        setAttached();
+    public void onStart() {
+        super.onStart();
+
+        hasPreparedForHostDetach = false;
+
+        Activity activity = getActivity();
+        if (activity != null) for (Router router : getRouters()) {
+            router.onActivityStarted(activity);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        Activity activity = getActivity();
+        if (activity != null) for (Router router : getRouters()) {
+            router.onActivityResumed(activity);
+        }
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
         destroyed = false;
-        setAttached();
-    }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-
-        attached = false;
-        destroyRouters();
-    }
-
-    private void setAttached() {
         if (!attached) {
             attached = true;
 
@@ -201,22 +171,63 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         }
     }
 
-    private void destroyRouters() {
-        if (!destroyed) {
-            destroyed = true;
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        attached = false;
+        destroyRouters();
+    }
 
-            if (activity != null) {
-                for (Router router : getRouters()) {
-                    router.onActivityDestroyed(activity);
-                }
-            }
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        prepareForHostDetachIfNeeded();
+
+        localState.putParcelable(KEY_PERMISSION_REQUEST_CODES, new StringSparseArrayParceler(permissionRequestMap));
+        localState.putParcelable(KEY_ACTIVITY_REQUEST_CODES, new StringSparseArrayParceler(activityRequestMap));
+        localState.putParcelableArrayList(KEY_PENDING_PERMISSION_REQUESTS, pendingPermissionRequests);
+
+        for (Router router : getRouters()) {
+            Bundle bundle = new Bundle();
+            router.saveInstanceState(bundle);
+            localState.putBundle(KEY_ROUTER_STATE_PREFIX + router.getContainerId(), bundle);
+        }
+
+        outState.putBundle(KEY_LOCAL_STATE, localState);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        Activity activity = getActivity();
+        if (activity != null) for (Router router : getRouters()) {
+            router.onActivityPaused(activity);
         }
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    public void onStop() {
+        super.onStop();
 
+        prepareForHostDetachIfNeeded();
+
+        Activity activity = getActivity();
+        if (activity != null) for (Router router : getRouters()) {
+            router.onActivityStopped(activity);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        destroyRouters();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         String instanceId = activityRequestMap.get(requestCode);
         if (instanceId != null) {
             for (Router router : getRouters()) {
@@ -227,8 +238,6 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
         String instanceId = permissionRequestMap.get(requestCode);
         if (instanceId != null) {
             for (Router router : getRouters()) {
@@ -245,13 +254,12 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
                 return handled;
             }
         }
+
         return super.shouldShowRequestPermissionRationale(permission);
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-
         for (Router router : getRouters()) {
             router.onCreateOptionsMenu(menu, inflater);
         }
@@ -259,8 +267,6 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-
         for (Router router : getRouters()) {
             router.onPrepareOptionsMenu(menu);
         }
@@ -274,7 +280,7 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
             }
         }
 
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     public void registerForActivityResult(@NonNull String instanceId, int requestCode) {
@@ -300,9 +306,11 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     }
 
     @TargetApi(Build.VERSION_CODES.N)
-    public void startIntentSenderForResult(@NonNull String instanceId, @NonNull IntentSender intent, int requestCode,
-                                           @Nullable Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags,
-                                           @Nullable Bundle options) throws IntentSender.SendIntentException {
+    public void startIntentSenderForResult(
+        @NonNull String instanceId, @NonNull IntentSender intent, int requestCode,
+        @Nullable Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags,
+        @Nullable Bundle options
+    ) throws IntentSender.SendIntentException {
         registerForActivityResult(instanceId, requestCode);
         startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
     }
@@ -317,73 +325,24 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         }
     }
 
-    @Override
-    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        if (this.activity == null && findInActivity(activity) == LifecycleHandler.this) {
-            this.activity = activity;
-
-            for (ActivityHostedRouter router : new ArrayList<>(routerMap.values())) {
-                router.onContextAvailable();
-            }
+    public void invalidateOptionsMenu() {
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.invalidateOptionsMenu();
         }
     }
 
-    @Override
-    public void onActivityStarted(Activity activity) {
-        if (this.activity == activity) {
-            hasPreparedForHostDetach = false;
+    private void destroyRouters() {
+        if (!destroyed) {
+            destroyed = true;
 
-            for (Router router : getRouters()) {
-                router.onActivityStarted(activity);
+            Activity activity = getActivity();
+            if (activity != null) {
+                for (Router router : getRouters()) {
+                    router.onActivityDestroyed(activity);
+                }
             }
         }
-    }
-
-    @Override
-    public void onActivityResumed(Activity activity) {
-        if (this.activity == activity) {
-            for (Router router : getRouters()) {
-                router.onActivityResumed(activity);
-            }
-        }
-    }
-
-    @Override
-    public void onActivityPaused(Activity activity) {
-        if (this.activity == activity) {
-            for (Router router : getRouters()) {
-                router.onActivityPaused(activity);
-            }
-        }
-    }
-
-    @Override
-    public void onActivityStopped(Activity activity) {
-        if (this.activity == activity) {
-            prepareForHostDetachIfNeeded();
-
-            for (Router router : getRouters()) {
-                router.onActivityStopped(activity);
-            }
-        }
-    }
-
-    @Override
-    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-        if (this.activity == activity) {
-            prepareForHostDetachIfNeeded();
-
-            for (Router router : getRouters()) {
-                Bundle bundle = new Bundle();
-                router.saveInstanceState(bundle);
-                outState.putBundle(KEY_ROUTER_STATE_PREFIX + router.getContainerId(), bundle);
-            }
-        }
-    }
-
-    @Override
-    public void onActivityDestroyed(Activity activity) {
-        activeLifecycleHandlers.remove(activity);
     }
 
     private void prepareForHostDetachIfNeeded() {
@@ -397,7 +356,9 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
     }
 
     private static class PendingPermissionRequest implements Parcelable {
+        @NonNull
         final String instanceId;
+        @NonNull
         final String[] permissions;
         final int requestCode;
 

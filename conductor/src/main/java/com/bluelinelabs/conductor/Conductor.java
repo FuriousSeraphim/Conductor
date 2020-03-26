@@ -1,13 +1,11 @@
 package com.bluelinelabs.conductor;
 
-import android.app.Activity;
-import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.UiThread;
 import android.view.ViewGroup;
 
-import com.bluelinelabs.conductor.internal.LifecycleHandler;
+import androidx.annotation.NonNull;
+import androidx.annotation.UiThread;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.bluelinelabs.conductor.internal.ThreadUtils;
 
 /**
@@ -15,7 +13,7 @@ import com.bluelinelabs.conductor.internal.ThreadUtils;
  */
 public final class Conductor {
 
-    private Conductor() {}
+    private Conductor() { }
 
     /**
      * Conductor will create a {@link Router} that has been initialized for your Activity and containing ViewGroup.
@@ -23,19 +21,18 @@ public final class Conductor {
      * or in the savedInstanceState, that router will be used and rebound instead of creating a new one with
      * an empty backstack.
      *
-     * @param activity The Activity that will host the {@link Router} being attached.
+     * @param activity  The Activity that will host the {@link Router} being attached.
      * @param container The ViewGroup in which the {@link Router}'s {@link Controller} views will be hosted
-     * @param savedInstanceState The savedInstanceState passed into the hosting Activity's onCreate method. Used
-     *                           for restoring the Router's state if possible.
      * @return A fully configured {@link Router} instance for use with this Activity/ViewGroup pair.
      */
-    @NonNull @UiThread
-    public static Router attachRouter(@NonNull Activity activity, @NonNull ViewGroup container, @Nullable Bundle savedInstanceState) {
+    @NonNull
+    @UiThread
+    public static Router attachRouter(@NonNull AppCompatActivity activity, @NonNull ViewGroup container) {
         ThreadUtils.ensureMainThread();
 
         LifecycleHandler lifecycleHandler = LifecycleHandler.install(activity);
 
-        Router router = lifecycleHandler.getRouter(container, savedInstanceState);
+        Router router = lifecycleHandler.getRouter(container);
         router.rebindIfNeeded();
 
         return router;

@@ -32,7 +32,7 @@ public class ControllerTests {
 
     public void createActivityController(Bundle savedInstanceState) {
         activityProxy = new ActivityProxy().create(savedInstanceState).start().resume();
-        router = Conductor.attachRouter(activityProxy.getActivity(), activityProxy.getView(), savedInstanceState);
+        router = Conductor.attachRouter(activityProxy.getActivity(), activityProxy.getView());
         if (!router.hasRootController()) {
             router.setRoot(RouterTransaction.with(new TestController()));
         }
@@ -144,7 +144,7 @@ public class ControllerTests {
         // Ensure requesting the permission gets us the result back
         try {
             controller.requestPermissions(requestedPermissions, 1);
-        } catch (NoSuchMethodError ignored) { }
+        } catch (AbstractMethodError ignored) { }
 
         router.onRequestPermissionsResult(controller.getInstanceId(), 1, requestedPermissions, new int[] {1});
         expectedCallState.onRequestPermissionsResultCalls++;
@@ -173,7 +173,7 @@ public class ControllerTests {
         // Ensure requesting the permission gets us the result back
         try {
             child.requestPermissions(requestedPermissions, 1);
-        } catch (NoSuchMethodError ignored) { }
+        } catch (AbstractMethodError ignored) { }
 
         router.onRequestPermissionsResult(child.getInstanceId(), 1, requestedPermissions, new int[] {1});
         childExpectedCallState.onRequestPermissionsResultCalls++;

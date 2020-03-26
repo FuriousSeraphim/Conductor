@@ -3,12 +3,10 @@ package com.bluelinelabs.conductor;
 import android.os.Bundle;
 import android.view.ViewGroup;
 
-import com.bluelinelabs.conductor.internal.LifecycleHandler;
 import com.bluelinelabs.conductor.util.ActivityProxy;
 import com.bluelinelabs.conductor.util.AttachFakingFrameLayout;
 import com.bluelinelabs.conductor.util.MockChangeHandler;
 import com.bluelinelabs.conductor.util.TestController;
-import com.bluelinelabs.conductor.util.ViewUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +26,7 @@ public class ReattachCaseTests {
 
     public void createActivityController(Bundle savedInstanceState) {
         activityProxy = new ActivityProxy().create(savedInstanceState).start().resume();
-        router = Conductor.attachRouter(activityProxy.getActivity(), activityProxy.getView(), savedInstanceState);
+        router = Conductor.attachRouter(activityProxy.getActivity(), activityProxy.getView());
         if (!router.hasRootController()) {
             router.setRoot(RouterTransaction.with(new TestController()));
         }
@@ -45,8 +43,8 @@ public class ReattachCaseTests {
         final TestController controllerB = new TestController();
 
         router.pushController(RouterTransaction.with(controllerA)
-            .pushChangeHandler(MockChangeHandler.defaultHandler())
-            .popChangeHandler(MockChangeHandler.defaultHandler()));
+                .pushChangeHandler(MockChangeHandler.defaultHandler())
+                .popChangeHandler(MockChangeHandler.defaultHandler()));
 
         assertTrue(controllerA.isAttached());
         assertFalse(controllerB.isAttached());
@@ -64,7 +62,7 @@ public class ReattachCaseTests {
         assertTrue(controllerB.isAttached());
 
         activityProxy.rotate();
-        router.rebindIfNeeded();
+        router = Conductor.attachRouter(activityProxy.getActivity(), activityProxy.getView());
 
         assertFalse(controllerA.isAttached());
         assertTrue(controllerB.isAttached());
@@ -80,10 +78,10 @@ public class ReattachCaseTests {
                 .pushChangeHandler(MockChangeHandler.defaultHandler())
                 .popChangeHandler(MockChangeHandler.defaultHandler()));
 
-        Router childRouter = controllerA.getChildRouter((ViewGroup)controllerA.getView().findViewById(TestController.VIEW_ID));
+        Router childRouter = controllerA.getChildRouter((ViewGroup) controllerA.getView().findViewById(TestController.VIEW_ID));
         childRouter.pushController(RouterTransaction.with(childController)
-            .pushChangeHandler(MockChangeHandler.defaultHandler())
-            .popChangeHandler(MockChangeHandler.defaultHandler()));
+                .pushChangeHandler(MockChangeHandler.defaultHandler())
+                .popChangeHandler(MockChangeHandler.defaultHandler()));
 
         assertTrue(controllerA.isAttached());
         assertTrue(childController.isAttached());
@@ -104,7 +102,7 @@ public class ReattachCaseTests {
         assertTrue(controllerB.isAttached());
 
         activityProxy.rotate();
-        router.rebindIfNeeded();
+        router = Conductor.attachRouter(activityProxy.getActivity(), activityProxy.getView());
 
         assertFalse(controllerA.isAttached());
         assertFalse(childController.isAttached());
@@ -130,7 +128,7 @@ public class ReattachCaseTests {
                 .pushChangeHandler(MockChangeHandler.defaultHandler())
                 .popChangeHandler(MockChangeHandler.defaultHandler()));
 
-        Router childRouter = controllerB.getChildRouter((ViewGroup)controllerB.getView().findViewById(TestController.VIEW_ID));
+        Router childRouter = controllerB.getChildRouter((ViewGroup) controllerB.getView().findViewById(TestController.VIEW_ID));
         childRouter.setPopsLastView(true);
         childRouter.pushController(RouterTransaction.with(childController)
                 .pushChangeHandler(MockChangeHandler.defaultHandler())
@@ -141,7 +139,7 @@ public class ReattachCaseTests {
         assertTrue(childController.isAttached());
 
         activityProxy.rotate();
-        router.rebindIfNeeded();
+        router = Conductor.attachRouter(activityProxy.getActivity(), activityProxy.getView());
 
         assertFalse(controllerA.isAttached());
         assertTrue(controllerB.isAttached());
@@ -179,7 +177,7 @@ public class ReattachCaseTests {
                 .pushChangeHandler(MockChangeHandler.defaultHandler())
                 .popChangeHandler(MockChangeHandler.defaultHandler()));
 
-        Router childRouter = controllerB.getChildRouter((ViewGroup)controllerB.getView().findViewById(TestController.VIEW_ID));
+        Router childRouter = controllerB.getChildRouter((ViewGroup) controllerB.getView().findViewById(TestController.VIEW_ID));
         childRouter.setPopsLastView(true);
         childRouter.pushController(RouterTransaction.with(childController)
                 .pushChangeHandler(MockChangeHandler.defaultHandler())
@@ -205,7 +203,7 @@ public class ReattachCaseTests {
         assertTrue(childController.isAttached());
 
         activityProxy.rotate();
-        router.rebindIfNeeded();
+        router = Conductor.attachRouter(activityProxy.getActivity(), activityProxy.getView());
 
         assertFalse(controllerA.isAttached());
         assertTrue(controllerB.isAttached());
@@ -256,6 +254,7 @@ public class ReattachCaseTests {
         // Unlock screen and rotate
         activityProxy.start();
         activityProxy.rotate();
+        Conductor.attachRouter(activityProxy.getActivity(), activityProxy.getView());
 
         assertTrue(controller2.isAttached());
     }
@@ -300,7 +299,7 @@ public class ReattachCaseTests {
 
         activityProxy.setView(container);
 
-        Router router = Conductor.attachRouter(activityProxy.getActivity(), container, null);
+        Router router = Conductor.attachRouter(activityProxy.getActivity(), container);
         router.setRoot(RouterTransaction.with(controller1));
         router.pushController(RouterTransaction.with(controller2));
 
@@ -324,7 +323,7 @@ public class ReattachCaseTests {
 
         // first attachRouter: Conductor.attachRouter(activityProxy.getActivity(), container1, null)
         LifecycleHandler lifecycleHandler = LifecycleHandler.install(activityProxy.getActivity());
-        Router router = lifecycleHandler.getRouter(container1, null);
+        Router router = lifecycleHandler.getRouter(container1);
         router.setRoot(RouterTransaction.with(controller1));
 
         // setup controllers
@@ -342,7 +341,7 @@ public class ReattachCaseTests {
 
         // second attach router with the same lifecycleHandler (do manually as Roboelectric recreates retained fragments)
         // Conductor.attachRouter(activityProxy.getActivity(), container2, savedState);
-        router = lifecycleHandler.getRouter(container2, savedState);
+        router = lifecycleHandler.getRouter(container2);
         router.rebindIfNeeded();
 
         activityProxy.start().resume();

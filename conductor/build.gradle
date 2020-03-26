@@ -25,6 +25,8 @@ android {
         versionName project.VERSION_NAME
         consumerProguardFiles 'proguard-rules.txt'
     }
+
+    testOptions.unitTests.includeAndroidResources = true
 }
 
 configurations {
@@ -36,6 +38,7 @@ dependencies {
     testImplementation rootProject.ext.roboelectric
 
     api rootProject.ext.androidxAnnotations
+    implementation rootProject.ext.androidxAppCompat
 
     lintChecks project(path: ':conductor-lint', configuration: 'lintChecks')
 }

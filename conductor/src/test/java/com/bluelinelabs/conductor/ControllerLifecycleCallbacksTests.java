@@ -44,7 +44,7 @@ public class ControllerLifecycleCallbacksTests {
             activityProxy.start().resume();
         }
 
-        router = Conductor.attachRouter(activityProxy.getActivity(), activityProxy.getView(), savedInstanceState);
+        router = Conductor.attachRouter(activityProxy.getActivity(), activityProxy.getView());
         if (!router.hasRootController()) {
             router.setRoot(RouterTransaction.with(new TestController()));
         }
