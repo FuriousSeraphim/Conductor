@@ -16,7 +16,6 @@ import android.widget.TextView;
 
 import com.bluelinelabs.conductor.RouterTransaction;
 import com.bluelinelabs.conductor.changehandler.FadeChangeHandler;
-import com.bluelinelabs.conductor.changehandler.TransitionChangeHandlerCompat;
 import com.bluelinelabs.conductor.demo.R;
 import com.bluelinelabs.conductor.demo.changehandler.CityGridSharedElementTransitionChangeHandler;
 import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
@@ -101,8 +100,8 @@ public class CityGridController extends BaseController {
         names.add(titleTransitionName);
 
         getRouter().pushController(RouterTransaction.with(new CityDetailController(model.drawableRes, model.title))
-                .pushChangeHandler(new TransitionChangeHandlerCompat(new CityGridSharedElementTransitionChangeHandler(names), new FadeChangeHandler()))
-                .popChangeHandler(new TransitionChangeHandlerCompat(new CityGridSharedElementTransitionChangeHandler(names), new FadeChangeHandler())));
+                .pushChangeHandler(new CityGridSharedElementTransitionChangeHandler(names))
+                .popChangeHandler(new CityGridSharedElementTransitionChangeHandler(names)));
     }
 
     class CityGridAdapter extends RecyclerView.Adapter<CityGridAdapter.ViewHolder> {

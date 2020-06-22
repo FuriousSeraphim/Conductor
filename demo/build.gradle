@@ -42,6 +42,7 @@ dependencies {
     implementation project(':conductor')
     implementation project(':conductor-modules:support')
     implementation project(':conductor-modules:arch-components-lifecycle')
+    implementation project(':conductor-modules:androidx-transition')
 
     debugImplementation rootProject.ext.leakCanary
     releaseImplementation rootProject.ext.leakCanaryNoOp

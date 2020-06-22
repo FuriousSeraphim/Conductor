@@ -1,5 +1,6 @@
 include ':conductor'
 include ':conductor-lint'
 include ':conductor-modules:support'
+include ':conductor-modules:androidx-transition'
 include ':conductor-modules:arch-components-lifecycle'
 include ':demo'

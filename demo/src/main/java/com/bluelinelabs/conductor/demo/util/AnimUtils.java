@@ -24,7 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.interpolator.view.animation.FastOutLinearInInterpolator;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
-import android.transition.Transition;
+import androidx.transition.Transition;
 import android.util.ArrayMap;
 import android.util.FloatProperty;
 import android.util.IntProperty;
@@ -37,7 +37,6 @@ import java.util.ArrayList;
 /**
  * Utility methods for working with animations.
  */
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class AnimUtils {
 
     private AnimUtils() { }

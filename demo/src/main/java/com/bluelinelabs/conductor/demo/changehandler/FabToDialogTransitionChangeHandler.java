@@ -1,29 +1,28 @@
 package com.bluelinelabs.conductor.demo.changehandler;
 
-import android.annotation.TargetApi;
-import android.os.Build;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import android.transition.Fade;
-import android.transition.Transition;
-import android.transition.TransitionSet;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.bluelinelabs.conductor.changehandler.TransitionChangeHandler;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.transition.Fade;
+import androidx.transition.Transition;
+import androidx.transition.TransitionSet;
+
+import com.bluelinelabs.conductor.changehandler.androidxtransition.TransitionChangeHandler;
 import com.bluelinelabs.conductor.demo.R;
 import com.bluelinelabs.conductor.demo.changehandler.transitions.FabTransform;
 import com.bluelinelabs.conductor.demo.util.AnimUtils;
 
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class FabToDialogTransitionChangeHandler extends TransitionChangeHandler {
 
     private View fab;
     private View dialogBackground;
     private ViewGroup fabParent;
 
-    @Override @NonNull
+    @Override
+    @NonNull
     protected Transition getTransition(@NonNull final ViewGroup container, @Nullable final View from, @Nullable final View to, boolean isPush) {
         Transition backgroundFade = new Fade();
         backgroundFade.addTarget(R.id.dialog_background);
@@ -40,22 +39,22 @@ public class FabToDialogTransitionChangeHandler extends TransitionChangeHandler 
     @Override
     public void prepareForTransition(@NonNull ViewGroup container, @Nullable View from, @Nullable View to, @NonNull Transition transition, boolean isPush, @NonNull OnTransitionPreparedListener onTransitionPreparedListener) {
         fab = isPush ? from.findViewById(R.id.fab) : to.findViewById(R.id.fab);
-        fabParent = (ViewGroup)fab.getParent();
+        fabParent = (ViewGroup) fab.getParent();
 
         if (!isPush) {
-             /*
+            /*
              * Before we transition back we want to remove the fab
              * in order to add it again for the TransitionManager to be able to detect the change
              */
             fabParent.removeView(fab);
             fab.setVisibility(View.VISIBLE);
 
-             /*
+            /*
              * Before we transition back we need to move the dialog's background to the new view
              * so its fade won't take place over the fab transition
              */
             dialogBackground = from.findViewById(R.id.dialog_background);
-            ((ViewGroup)dialogBackground.getParent()).removeView(dialogBackground);
+            ((ViewGroup) dialogBackground.getParent()).removeView(dialogBackground);
             fabParent.addView(dialogBackground);
         }
 
