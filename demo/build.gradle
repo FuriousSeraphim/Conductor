@@ -41,9 +41,6 @@ dependencies {
 
     implementation project(':conductor')
     implementation project(':conductor-modules:support')
-    implementation project(':conductor-modules:rxlifecycle')
-    implementation project(':conductor-modules:rxlifecycle2')
-    implementation project(':conductor-modules:autodispose')
     implementation project(':conductor-modules:arch-components-lifecycle')
 
     debugImplementation rootProject.ext.leakCanary

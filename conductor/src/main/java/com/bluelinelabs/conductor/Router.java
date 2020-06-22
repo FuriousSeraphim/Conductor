@@ -10,6 +10,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.UiThread;
+
 import com.bluelinelabs.conductor.Controller.LifecycleListener;
 import com.bluelinelabs.conductor.ControllerChangeHandler.ChangeTransaction;
 import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListener;
@@ -22,10 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.UiThread;
 
 /**
  * A Router implements navigation and backstack handling for {@link Controller}s. Router objects are attached
@@ -633,12 +633,11 @@ public abstract class Router {
     public void prepareForHostDetach() {
         pendingControllerChanges.clear(); // rely on backstack based restoration in rebindIfNeeded
 
+        boolean needsAttach = true;
         for (RouterTransaction transaction : backstack) {
-            if (ControllerChangeHandler.completeHandlerImmediately(transaction.controller.getInstanceId())) {
-                transaction.controller.setNeedsAttach(true);
-            }
-
-            transaction.controller.prepareForHostDetach();
+            ControllerChangeHandler.completeHandlerImmediately(transaction.controller().getInstanceId());
+            transaction.controller().prepareForHostDetach(needsAttach);
+            needsAttach = transaction.pushChangeHandler() != null && !transaction.pushChangeHandler().removesFromViewOnPush();
         }
     }
 
@@ -765,7 +764,7 @@ public abstract class Router {
         return null;
     }
 
-    private void performControllerChange(@Nullable RouterTransaction to, @Nullable RouterTransaction from, boolean isPush) {
+    void performControllerChange(@Nullable RouterTransaction to, @Nullable RouterTransaction from, boolean isPush) {
         if (isPush && to != null) {
             to.onAttachedToRouter();
         }
@@ -981,17 +980,31 @@ public abstract class Router {
     }
 
     abstract void invalidateOptionsMenu();
+
     abstract void startActivity(@NonNull Intent intent);
+
     abstract void startActivityForResult(@NonNull String instanceId, @NonNull Intent intent, int requestCode);
+
     abstract void startActivityForResult(@NonNull String instanceId, @NonNull Intent intent, int requestCode, @Nullable Bundle options);
+
     abstract void startIntentSenderForResult(@NonNull String instanceId, @NonNull IntentSender intent, int requestCode, @Nullable Intent fillInIntent, int flagsMask,
                                              int flagsValues, int extraFlags, @Nullable Bundle options) throws IntentSender.SendIntentException;
+
     abstract void registerForActivityResult(@NonNull String instanceId, int requestCode);
+
     abstract void unregisterForActivityResults(@NonNull String instanceId);
+
     abstract void requestPermissions(@NonNull String instanceId, @NonNull String[] permissions, int requestCode);
+
     abstract boolean hasHost();
-    @NonNull abstract List<Router> getSiblingRouters();
-    @NonNull abstract Router getRootRouter();
-    @NonNull abstract TransactionIndexer getTransactionIndexer();
+
+    @NonNull
+    abstract List<Router> getSiblingRouters();
+
+    @NonNull
+    abstract Router getRootRouter();
+
+    @NonNull
+    abstract TransactionIndexer getTransactionIndexer();
 
 }

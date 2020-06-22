@@ -14,7 +14,7 @@ ext {
     archComponentsVersion = '2.0.0'
     junitVersion = '4.12'
     roboelectricVersion = '4.3.1'
-    lintVersion = '26.1.2'
+    lintVersion = '26.6.1'
 
     material = "com.google.android.material:material:1.1.0"
     androidxAnnotations = "androidx.annotation:annotation:1.1.0"

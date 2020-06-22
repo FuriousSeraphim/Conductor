@@ -155,7 +155,7 @@ public abstract class Controller {
      *                  so that valid LayoutParams can be used during inflation.
      */
     @NonNull
-    protected abstract View onCreateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container);
+    protected abstract View onCreateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container, @Nullable Bundle savedViewState);
 
     /**
      * Returns the {@link Router} object that can be used for pushing or popping other Controllers
@@ -212,6 +212,9 @@ public abstract class Controller {
     @Nullable
     public final Router getChildRouter(@NonNull ViewGroup container, @Nullable String tag, boolean createIfNeeded) {
         @IdRes final int containerId = container.getId();
+        if (containerId == View.NO_ID) {
+            throw new IllegalStateException("You must set an id on your container.");
+        }
 
         ControllerHostedRouter childRouter = null;
         for (ControllerHostedRouter router : childRouters) {
@@ -755,8 +758,8 @@ public abstract class Controller {
         this.needsAttach = needsAttach;
     }
 
-    final void prepareForHostDetach() {
-        needsAttach = needsAttach || attached;
+    final void prepareForHostDetach(boolean wasAttached) {
+        needsAttach = wasAttached;
 
         for (ControllerHostedRouter router : childRouters) {
             router.prepareForHostDetach();
@@ -923,7 +926,9 @@ public abstract class Controller {
                 }
             }
 
-            childRouter.rebindIfNeeded();
+            if (childRouter.hasHost()) {
+                childRouter.rebindIfNeeded();
+            }
         }
     }
 
@@ -1012,7 +1017,8 @@ public abstract class Controller {
                 lifecycleListener.preCreateView(this);
             }
 
-            view = onCreateView(LayoutInflater.from(parent.getContext()), parent);
+            Bundle savedViewState = viewState == null ? null : viewState.getBundle(KEY_VIEW_STATE_BUNDLE);
+            view = onCreateView(LayoutInflater.from(parent.getContext()), parent, savedViewState);
             if (view == parent) {
                 throw new IllegalStateException("Controller's onCreateView method returned the parent ViewGroup. Perhaps you forgot to pass false for LayoutInflater.inflate's attachToRoot parameter?");
             }

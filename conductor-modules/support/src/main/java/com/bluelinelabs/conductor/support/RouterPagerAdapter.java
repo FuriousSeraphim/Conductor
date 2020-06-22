@@ -14,7 +14,9 @@ import com.bluelinelabs.conductor.Router;
 import com.bluelinelabs.conductor.RouterTransaction;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An adapter for ViewPagers that uses Routers as pages
@@ -22,11 +24,14 @@ import java.util.List;
 public abstract class RouterPagerAdapter extends PagerAdapter {
 
     private static final String KEY_SAVED_PAGES = "RouterPagerAdapter.savedStates";
+    private static final String KEY_TAGS_KEYS = "RouterPagerAdapter.tags.keys";
+    private static final String KEY_TAGS_VALUES = "RouterPagerAdapter.tags.values";
     private static final String KEY_MAX_PAGES_TO_STATE_SAVE = "RouterPagerAdapter.maxPagesToStateSave";
     private static final String KEY_SAVE_PAGE_HISTORY = "RouterPagerAdapter.savedPageHistory";
 
     private final Controller host;
     private int maxPagesToStateSave = Integer.MAX_VALUE;
+    private Map<Integer, String> tags = new HashMap<>();
     private SparseArray<Bundle> savedPages = new SparseArray<>();
     private SparseArray<Router> visibleRouters = new SparseArray<>();
     private ArrayList<Integer> savedPageHistory = new ArrayList<>();
@@ -65,6 +70,12 @@ public abstract class RouterPagerAdapter extends PagerAdapter {
     public Object instantiateItem(ViewGroup container, int position) {
         final String name = makeRouterName(container.getId(), getItemId(position));
 
+        // Ensure we don't try to restore state for a router with a different ID just because
+        // the position was reused. Fixes https://github.com/bluelinelabs/Conductor/issues/582
+        if (tags.get(position) != null && !tags.get(position).equals(name)) {
+            savedPages.remove(position);
+        }
+
         Router router = host.getChildRouter(container, name);
         if (!router.hasRootController()) {
             Bundle routerSavedState = savedPages.get(position);
@@ -85,6 +96,7 @@ public abstract class RouterPagerAdapter extends PagerAdapter {
             }
         }
 
+        tags.put(position, name);
         visibleRouters.put(position, router);
         return router;
     }
@@ -141,6 +153,8 @@ public abstract class RouterPagerAdapter extends PagerAdapter {
     public Parcelable saveState() {
         Bundle bundle = new Bundle();
         bundle.putSparseParcelableArray(KEY_SAVED_PAGES, savedPages);
+        bundle.putIntegerArrayList(KEY_TAGS_KEYS, new ArrayList<>(tags.keySet()));
+        bundle.putStringArrayList(KEY_TAGS_VALUES, new ArrayList<>(tags.values()));
         bundle.putInt(KEY_MAX_PAGES_TO_STATE_SAVE, maxPagesToStateSave);
         bundle.putIntegerArrayList(KEY_SAVE_PAGE_HISTORY, savedPageHistory);
         return bundle;
@@ -153,6 +167,14 @@ public abstract class RouterPagerAdapter extends PagerAdapter {
             savedPages = bundle.getSparseParcelableArray(KEY_SAVED_PAGES);
             maxPagesToStateSave = bundle.getInt(KEY_MAX_PAGES_TO_STATE_SAVE);
             savedPageHistory = bundle.getIntegerArrayList(KEY_SAVE_PAGE_HISTORY);
+
+            List<Integer> tagsKeys = bundle.getIntegerArrayList(KEY_TAGS_KEYS);
+            List<String> tagsValues = bundle.getStringArrayList(KEY_TAGS_VALUES);
+            if (tagsKeys != null && tagsValues != null && tagsKeys.size() == tagsValues.size()) {
+                for (int i = 0; i < tagsKeys.size(); i++) {
+                    tags.put(tagsKeys.get(i), tagsValues.get(i));
+                }
+            }
         }
     }
 
