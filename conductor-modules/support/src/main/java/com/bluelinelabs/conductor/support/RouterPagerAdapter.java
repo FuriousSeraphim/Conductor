@@ -66,13 +66,14 @@ public abstract class RouterPagerAdapter extends PagerAdapter {
         ensurePagesSaved();
     }
 
+    @NonNull
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
         final String name = makeRouterName(container.getId(), getItemId(position));
 
         // Ensure we don't try to restore state for a router with a different ID just because
         // the position was reused. Fixes https://github.com/bluelinelabs/Conductor/issues/582
-        if (tags.get(position) != null && !tags.get(position).equals(name)) {
+        if (tags.get(position) != null && !name.equals(tags.get(position))) {
             savedPages.remove(position);
         }
 
@@ -102,7 +103,7 @@ public abstract class RouterPagerAdapter extends PagerAdapter {
     }
 
     @Override
-    public void destroyItem(ViewGroup container, int position, Object object) {
+    public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
         Router router = (Router)object;
 
         Bundle savedState = new Bundle();
@@ -120,7 +121,7 @@ public abstract class RouterPagerAdapter extends PagerAdapter {
     }
 
     @Override
-    public void setPrimaryItem(ViewGroup container, int position, Object object) {
+    public void setPrimaryItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
         Router router = (Router)object;
         if (router != currentPrimaryRouter) {
             if (currentPrimaryRouter != null) {
@@ -138,7 +139,7 @@ public abstract class RouterPagerAdapter extends PagerAdapter {
     }
 
     @Override
-    public boolean isViewFromObject(View view, Object object) {
+    public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
         Router router = (Router)object;
         final List<RouterTransaction> backstack = router.getBackstack();
         for (RouterTransaction transaction : backstack) {

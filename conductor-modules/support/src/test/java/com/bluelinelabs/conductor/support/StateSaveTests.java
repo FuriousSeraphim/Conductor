@@ -11,6 +11,7 @@ import com.bluelinelabs.conductor.Conductor;
 import com.bluelinelabs.conductor.Router;
 import com.bluelinelabs.conductor.RouterTransaction;
 import com.bluelinelabs.conductor.support.util.FakePager;
+import com.bluelinelabs.conductor.support.util.TestActivity;
 import com.bluelinelabs.conductor.support.util.TestController;
 
 import org.junit.Before;
@@ -31,7 +32,7 @@ public class StateSaveTests {
     private RouterPagerAdapter pagerAdapter;
 
     public void createActivityController() {
-        ActivityController<AppCompatActivity> activityController = Robolectric.buildActivity(AppCompatActivity.class).create().start().resume();
+        ActivityController<TestActivity> activityController = Robolectric.buildActivity(TestActivity.class).create().start().resume();
         Router router = Conductor.attachRouter(activityController.get(), new FrameLayout(activityController.get()));
         TestController controller = new TestController();
         router.setRoot(RouterTransaction.with(controller));

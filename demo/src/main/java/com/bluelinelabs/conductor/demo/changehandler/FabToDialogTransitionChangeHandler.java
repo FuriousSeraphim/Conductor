@@ -1,10 +1,12 @@
 package com.bluelinelabs.conductor.demo.changehandler;
 
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.transition.Fade;
 import androidx.transition.Transition;
@@ -15,6 +17,7 @@ import com.bluelinelabs.conductor.demo.R;
 import com.bluelinelabs.conductor.demo.changehandler.transitions.FabTransform;
 import com.bluelinelabs.conductor.demo.util.AnimUtils;
 
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class FabToDialogTransitionChangeHandler extends TransitionChangeHandler {
 
     private View fab;

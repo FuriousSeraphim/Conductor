@@ -29,6 +29,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
@@ -38,6 +39,8 @@ import android.view.animation.Interpolator;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.transition.Transition;
 import androidx.transition.TransitionValues;
@@ -54,6 +57,7 @@ import static android.view.View.MeasureSpec.makeMeasureSpec;
  * <p>
  * See: https://www.google.com/design/spec/motion/transforming-material.html#transforming-material-radial-transformation
  */
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class FabTransform extends Transition {
 
     private static final long DEFAULT_DURATION = 240L;
@@ -78,17 +82,17 @@ public class FabTransform extends Transition {
     }
 
     @Override
-    public void captureStartValues(TransitionValues transitionValues) {
+    public void captureStartValues(@NonNull TransitionValues transitionValues) {
         captureValues(transitionValues);
     }
 
     @Override
-    public void captureEndValues(TransitionValues transitionValues) {
+    public void captureEndValues(@NonNull TransitionValues transitionValues) {
         captureValues(transitionValues);
     }
 
     @Override
-    public Animator createAnimator(final ViewGroup sceneRoot,
+    public Animator createAnimator(@NonNull final ViewGroup sceneRoot,
                                    final TransitionValues startValues,
                                    final TransitionValues endValues) {
         if (startValues == null || endValues == null) return null;

@@ -4,7 +4,21 @@ buildscript {
     }
 }
 
+apply plugin: 'com.novoda.bintray-release'
 apply plugin: 'com.android.library'
+
+def libVersionCode = Integer.parseInt(project.VERSION_CODE)
+def libVersionName = project.VERSION_NAME
+
+publish {
+    userOrg = 'furiousseraphim'
+    repoName = 'Conductor'
+    groupId = 'com.furiousseraphim.conductor'
+    artifactId = 'conductor-androidx-transition'
+    publishVersion = libVersionName
+    desc = 'AndroidX transition'
+    website = 'https://github.com/FuriousSeraphim/Conductor'
+}
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -17,8 +31,8 @@ android {
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode Integer.parseInt(project.VERSION_CODE)
-        versionName project.VERSION_NAME
+        versionCode libVersionCode
+        versionName libVersionName
     }
 }
 
@@ -32,4 +46,3 @@ dependencies {
 ext.artifactId = 'conductor-support'
 
 apply from: rootProject.file('dependencies.gradle')
-apply from: rootProject.file('gradle-mvn-push.gradle')

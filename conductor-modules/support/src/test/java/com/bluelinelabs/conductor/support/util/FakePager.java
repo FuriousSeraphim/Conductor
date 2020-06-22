@@ -1,6 +1,7 @@
 package com.bluelinelabs.conductor.support.util;
 
 import android.util.SparseArray;
+import android.view.View;
 import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.support.RouterPagerAdapter;
@@ -18,6 +19,9 @@ public class FakePager {
 
     public FakePager(ViewGroup container) {
         this.container = container;
+        if (container.getId() == View.NO_ID) {
+            container.setId(View.generateViewId());
+        }
     }
 
     public void setAdapter(RouterPagerAdapter adapter) {
