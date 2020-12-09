@@ -124,7 +124,7 @@ public class ActivityHostedRouter extends Router {
     }
 
     @Override @NonNull
-    Router getRootRouter() {
+    public Router getRootRouter() {
         return this;
     }
 

@@ -998,7 +998,7 @@ public abstract class Router {
     abstract void requestPermissions(@NonNull String instanceId, @NonNull String[] permissions, int requestCode);
     abstract boolean hasHost();
     @NonNull abstract List<Router> getSiblingRouters();
-    @NonNull abstract Router getRootRouter();
+    @NonNull abstract public Router getRootRouter();
     @NonNull abstract TransactionIndexer getTransactionIndexer();
 
 }

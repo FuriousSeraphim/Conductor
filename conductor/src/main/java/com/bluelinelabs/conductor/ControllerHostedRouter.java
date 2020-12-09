@@ -248,7 +248,7 @@ class ControllerHostedRouter extends Router {
     }
 
     @Override @NonNull
-    Router getRootRouter() {
+    public Router getRootRouter() {
         if (hostController != null && hostController.getRouter() != null) {
             return hostController.getRouter().getRootRouter();
         } else {

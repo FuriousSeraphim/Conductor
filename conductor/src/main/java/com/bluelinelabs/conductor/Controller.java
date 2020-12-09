@@ -164,6 +164,11 @@ public abstract class Controller {
         return router;
     }
 
+    @NonNull
+    public final Router getRootRouter() {
+        return router.getRootRouter();
+    }
+
     /**
      * Returns any arguments that were set in this Controller's constructor
      */

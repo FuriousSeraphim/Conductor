@@ -13,7 +13,7 @@ import com.bluelinelabs.conductor.ControllerChangeHandler;
 
 /**
  * A base {@link ControllerChangeHandler} that facilitates using {@link Transition}s to replace Controller Views.
- * <p/>
+ * <p>
  * Note that this class uses the <b>androidx</b> {@link Transition}. If you're using Android's platform transitions,
  * consider using the {@code TransitionChangeHandler} provided by the {@code android-transitions} Conductor module.
  */
