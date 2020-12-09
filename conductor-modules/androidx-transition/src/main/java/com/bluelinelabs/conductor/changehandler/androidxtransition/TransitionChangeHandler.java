@@ -13,6 +13,9 @@ import com.bluelinelabs.conductor.ControllerChangeHandler;
 
 /**
  * A base {@link ControllerChangeHandler} that facilitates using {@link Transition}s to replace Controller Views.
+ * <p/>
+ * Note that this class uses the <b>androidx</b> {@link Transition}. If you're using Android's platform transitions,
+ * consider using the {@code TransitionChangeHandler} provided by the {@code android-transitions} Conductor module.
  */
 public abstract class TransitionChangeHandler extends ControllerChangeHandler {
 
@@ -74,27 +77,27 @@ public abstract class TransitionChangeHandler extends ControllerChangeHandler {
         final Transition transition = getTransition(container, from, to, isPush);
         transition.addListener(new Transition.TransitionListener() {
             @Override
-            public void onTransitionStart(Transition transition) {
+            public void onTransitionStart(@NonNull Transition transition) {
                 container.removeCallbacks(onTransitionNotStarted);
             }
 
             @Override
-            public void onTransitionEnd(Transition transition) {
+            public void onTransitionEnd(@NonNull Transition transition) {
                 listener.onChangeCompleted();
                 listener = null;
             }
 
             @Override
-            public void onTransitionCancel(Transition transition) {
+            public void onTransitionCancel(@NonNull Transition transition) {
                 listener.onChangeCompleted();
                 listener = null;
             }
 
             @Override
-            public void onTransitionPause(Transition transition) { }
+            public void onTransitionPause(@NonNull Transition transition) { }
 
             @Override
-            public void onTransitionResume(Transition transition) { }
+            public void onTransitionResume(@NonNull Transition transition) { }
         });
 
         prepareForTransition(container, from, to, transition, isPush, new OnTransitionPreparedListener() {

@@ -6,6 +6,7 @@ buildscript {
 
 apply plugin: 'com.novoda.bintray-release'
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 
 def libVersionCode = Integer.parseInt(project.VERSION_CODE)
 def libVersionName = project.VERSION_NAME
@@ -46,3 +47,6 @@ dependencies {
 ext.artifactId = 'conductor-support'
 
 apply from: rootProject.file('dependencies.gradle')
+repositories {
+    mavenCentral()
+}

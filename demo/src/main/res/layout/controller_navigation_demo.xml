@@ -47,15 +47,6 @@
             style="?android:attr/buttonBarButtonStyle"
             />
 
-        <Button
-            android:id="@+id/btn_pop_3"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="@string/pop_third_controller"
-            style="?android:attr/buttonBarButtonStyle"
-            />
-
     </LinearLayout>
 
 </LinearLayout>

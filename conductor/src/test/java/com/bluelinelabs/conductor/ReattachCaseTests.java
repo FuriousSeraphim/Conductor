@@ -15,6 +15,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
@@ -43,8 +44,8 @@ public class ReattachCaseTests {
         final TestController controllerB = new TestController();
 
         router.pushController(RouterTransaction.with(controllerA)
-                .pushChangeHandler(MockChangeHandler.defaultHandler())
-                .popChangeHandler(MockChangeHandler.defaultHandler()));
+            .pushChangeHandler(MockChangeHandler.defaultHandler())
+            .popChangeHandler(MockChangeHandler.defaultHandler()));
 
         assertTrue(controllerA.isAttached());
         assertFalse(controllerB.isAttached());
@@ -80,8 +81,8 @@ public class ReattachCaseTests {
 
         Router childRouter = controllerA.getChildRouter((ViewGroup) controllerA.getView().findViewById(TestController.VIEW_ID));
         childRouter.pushController(RouterTransaction.with(childController)
-                .pushChangeHandler(MockChangeHandler.defaultHandler())
-                .popChangeHandler(MockChangeHandler.defaultHandler()));
+            .pushChangeHandler(MockChangeHandler.defaultHandler())
+            .popChangeHandler(MockChangeHandler.defaultHandler()));
 
         assertTrue(controllerA.isAttached());
         assertTrue(childController.isAttached());
@@ -347,6 +348,54 @@ public class ReattachCaseTests {
         activityProxy.start().resume();
 
         assertTrue(controller2.isAttached());
+    }
+
+    @Test
+    public void testHostAvailableDuringRotation() {
+        final Controller controllerA = new TestController();
+        final Controller childControllerA = new TestController();
+        final Controller controllerB = new TestController();
+        final Controller childControllerB = new TestController();
+
+        router.pushController(RouterTransaction.with(controllerA)
+                .pushChangeHandler(MockChangeHandler.defaultHandler())
+                .popChangeHandler(MockChangeHandler.defaultHandler()));
+
+        Router childRouterA = controllerA.getChildRouter((ViewGroup) controllerA.getView().findViewById(TestController.VIEW_ID));
+        childRouterA.pushController(RouterTransaction.with(childControllerA)
+                .pushChangeHandler(MockChangeHandler.defaultHandler())
+                .popChangeHandler(MockChangeHandler.defaultHandler()));
+
+        assertNotNull(controllerA.getActivity());
+        assertNotNull(childControllerA.getActivity());
+
+        router.pushController(RouterTransaction.with(controllerB)
+                .pushChangeHandler(MockChangeHandler.defaultHandler())
+                .popChangeHandler(MockChangeHandler.defaultHandler()));
+
+        Router childRouterB = controllerB.getChildRouter((ViewGroup) controllerB.getView().findViewById(TestController.VIEW_ID));
+        childRouterB.pushController(RouterTransaction.with(childControllerB)
+                .pushChangeHandler(MockChangeHandler.defaultHandler())
+                .popChangeHandler(MockChangeHandler.defaultHandler()));
+
+        assertNotNull(controllerA.getActivity());
+        assertNotNull(childControllerA.getActivity());
+        assertNotNull(controllerB.getActivity());
+        assertNotNull(childControllerB.getActivity());
+
+        activityProxy.rotate();
+
+        assertNotNull(controllerA.getActivity());
+        assertNotNull(childControllerA.getActivity());
+        assertNotNull(controllerB.getActivity());
+        assertNotNull(childControllerB.getActivity());
+
+        router = Conductor.attachRouter(activityProxy.getActivity(), activityProxy.getView());
+
+        assertNotNull(controllerA.getActivity());
+        assertNotNull(childControllerA.getActivity());
+        assertNotNull(controllerB.getActivity());
+        assertNotNull(childControllerB.getActivity());
     }
 
     private void sleepWakeDevice() {

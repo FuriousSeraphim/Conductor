@@ -1,5 +1,6 @@
 include ':conductor'
 include ':conductor-lint'
-include ':conductor-modules:support'
+include ':conductor-modules:viewpager'
+include ':conductor-modules:viewpager2'
 include ':conductor-modules:androidx-transition'
 include ':demo'

@@ -152,7 +152,7 @@ public class LifecycleHandler extends Fragment {
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
 
         destroyed = false;
@@ -175,7 +175,9 @@ public class LifecycleHandler extends Fragment {
     public void onDetach() {
         super.onDetach();
         attached = false;
-        destroyRouters();
+        if (getActivity() != null) {
+            destroyRouters(getActivity().isChangingConfigurations());
+        }
     }
 
     @Override
@@ -223,7 +225,8 @@ public class LifecycleHandler extends Fragment {
     public void onDestroy() {
         super.onDestroy();
 
-        destroyRouters();
+        destroyRouters(false);
+        routerMap.clear();
     }
 
     @Override
@@ -259,21 +262,21 @@ public class LifecycleHandler extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         for (Router router : getRouters()) {
             router.onCreateOptionsMenu(menu, inflater);
         }
     }
 
     @Override
-    public void onPrepareOptionsMenu(Menu menu) {
+    public void onPrepareOptionsMenu(@NonNull Menu menu) {
         for (Router router : getRouters()) {
             router.onPrepareOptionsMenu(menu);
         }
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         for (Router router : getRouters()) {
             if (router.onOptionsItemSelected(item)) {
                 return true;
@@ -307,9 +310,9 @@ public class LifecycleHandler extends Fragment {
 
     @TargetApi(Build.VERSION_CODES.N)
     public void startIntentSenderForResult(
-        @NonNull String instanceId, @NonNull IntentSender intent, int requestCode,
-        @Nullable Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags,
-        @Nullable Bundle options
+            @NonNull String instanceId, @NonNull IntentSender intent, int requestCode,
+            @Nullable Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags,
+            @Nullable Bundle options
     ) throws IntentSender.SendIntentException {
         registerForActivityResult(instanceId, requestCode);
         startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
@@ -332,14 +335,14 @@ public class LifecycleHandler extends Fragment {
         }
     }
 
-    private void destroyRouters() {
+    private void destroyRouters(boolean configurationChange) {
         if (!destroyed) {
             destroyed = true;
 
             Activity activity = getActivity();
             if (activity != null) {
                 for (Router router : getRouters()) {
-                    router.onActivityDestroyed(activity);
+                    router.onActivityDestroyed(activity, configurationChange);
                 }
             }
         }

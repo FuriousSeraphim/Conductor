@@ -5,10 +5,11 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
+import android.view.ViewGroup;
+
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListener;
 import com.bluelinelabs.conductor.internal.TransactionIndexer;
@@ -35,19 +36,25 @@ class ControllerHostedRouter extends Router {
         this.tag = tag;
     }
 
-    final void setHost(@NonNull Controller controller, @NonNull ViewGroup container) {
+    final void setHostController(@NonNull Controller controller) {
+        if (hostController == null) {
+            hostController = controller;
+        }
+    }
+
+    final void setHostContainer(@NonNull Controller controller, @NonNull ViewGroup container) {
         if (hostController != controller || this.container != container) {
             removeHost();
 
             if (container instanceof ControllerChangeListener) {
-                addChangeListener((ControllerChangeListener)container);
+                addChangeListener((ControllerChangeListener) container);
             }
 
             hostController = controller;
             this.container = container;
 
             for (RouterTransaction transaction : backstack) {
-                transaction.controller.setParentController(controller);
+                transaction.controller().setParentController(controller);
             }
 
             watchContainerAttach();
@@ -56,7 +63,7 @@ class ControllerHostedRouter extends Router {
 
     final void removeHost() {
         if (container != null && container instanceof ControllerChangeListener) {
-            removeChangeListener((ControllerChangeListener)container);
+            removeChangeListener((ControllerChangeListener) container);
         }
 
         final List<Controller> controllersToDestroy = new ArrayList<>(destroyingControllers);
@@ -66,20 +73,19 @@ class ControllerHostedRouter extends Router {
             }
         }
         for (RouterTransaction transaction : backstack) {
-            if (transaction.controller.getView() != null) {
-                transaction.controller.detach(transaction.controller.getView(), true, false);
+            if (transaction.controller().getView() != null) {
+                transaction.controller().detach(transaction.controller().getView(), true, false);
             }
         }
 
         prepareForContainerRemoval();
-        hostController = null;
         container = null;
     }
 
     final void setDetachFrozen(boolean frozen) {
         isDetachFrozen = frozen;
         for (RouterTransaction transaction : backstack) {
-            transaction.controller.setDetachFrozen(frozen);
+            transaction.controller().setDetachFrozen(frozen);
         }
     }
 
@@ -92,7 +98,7 @@ class ControllerHostedRouter extends Router {
     @Override
     protected void pushToBackstack(@NonNull RouterTransaction entry) {
         if (isDetachFrozen) {
-            entry.controller.setDetachFrozen(true);
+            entry.controller().setDetachFrozen(true);
         }
         super.pushToBackstack(entry);
     }
@@ -101,7 +107,7 @@ class ControllerHostedRouter extends Router {
     public void setBackstack(@NonNull List<RouterTransaction> newBackstack, @Nullable ControllerChangeHandler changeHandler) {
         if (isDetachFrozen) {
             for (RouterTransaction transaction : newBackstack) {
-                transaction.controller.setDetachFrozen(true);
+                transaction.controller().setDetachFrozen(true);
             }
         }
         super.setBackstack(newBackstack, changeHandler);
@@ -128,8 +134,8 @@ class ControllerHostedRouter extends Router {
     }
 
     @Override
-    public void onActivityDestroyed(@NonNull Activity activity) {
-        super.onActivityDestroyed(activity);
+    public void onActivityDestroyed(@NonNull Activity activity, boolean isConfigurationChange) {
+        super.onActivityDestroyed(activity, isConfigurationChange);
 
         removeHost();
     }
@@ -199,7 +205,7 @@ class ControllerHostedRouter extends Router {
 
     @Override
     boolean hasHost() {
-        return hostController != null;
+        return hostController != null && container != null;
     }
 
     @Override
@@ -219,9 +225,9 @@ class ControllerHostedRouter extends Router {
     }
 
     @Override
-    void setControllerRouter(@NonNull Controller controller) {
+    void setRouterOnController(@NonNull Controller controller) {
         controller.setParentController(hostController);
-        super.setControllerRouter(controller);
+        super.setRouterOnController(controller);
     }
 
     int getHostId() {

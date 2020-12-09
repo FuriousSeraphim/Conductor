@@ -4,13 +4,13 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     defaultConfig {
         applicationId "com.bluelinelabs.conductor.demo"
-        minSdkVersion rootProject.ext.minSdkVersion
+        minSdkVersion 21
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
@@ -31,6 +31,7 @@ android {
 
 dependencies {
     implementation rootProject.ext.androidxAppCompat
+    implementation rootProject.ext.androidxViewPager2
     implementation rootProject.ext.material
 
     annotationProcessor rootProject.ext.butterknifeCompiler
@@ -38,7 +39,8 @@ dependencies {
     implementation rootProject.ext.picasso
 
     implementation project(':conductor')
-    implementation project(':conductor-modules:support')
+    implementation project(':conductor-modules:viewpager')
+    implementation project(':conductor-modules:viewpager2')
     implementation project(':conductor-modules:androidx-transition')
 
     debugImplementation rootProject.ext.leakCanary

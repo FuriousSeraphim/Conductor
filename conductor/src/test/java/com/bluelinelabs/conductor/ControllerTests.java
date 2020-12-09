@@ -144,7 +144,7 @@ public class ControllerTests {
         // Ensure requesting the permission gets us the result back
         try {
             controller.requestPermissions(requestedPermissions, 1);
-        } catch (AbstractMethodError ignored) { }
+        } catch (NoSuchMethodError ignored) { }
 
         router.onRequestPermissionsResult(controller.getInstanceId(), 1, requestedPermissions, new int[] {1});
         expectedCallState.onRequestPermissionsResultCalls++;
@@ -173,7 +173,7 @@ public class ControllerTests {
         // Ensure requesting the permission gets us the result back
         try {
             child.requestPermissions(requestedPermissions, 1);
-        } catch (AbstractMethodError ignored) { }
+        } catch (NoSuchMethodError ignored) { }
 
         router.onRequestPermissionsResult(child.getInstanceId(), 1, requestedPermissions, new int[] {1});
         childExpectedCallState.onRequestPermissionsResultCalls++;
@@ -392,10 +392,10 @@ public class ControllerTests {
         RouterTransaction restoredChildTransaction1 = childRouter.getBackstack().get(0);
         RouterTransaction restoredChildTransaction2 = childRouter.getBackstack().get(1);
 
-        assertEquals(childTransaction1.transactionIndex, restoredChildTransaction1.transactionIndex);
-        assertEquals(childTransaction1.controller.getInstanceId(), restoredChildTransaction1.controller.getInstanceId());
-        assertEquals(childTransaction2.transactionIndex, restoredChildTransaction2.transactionIndex);
-        assertEquals(childTransaction2.controller.getInstanceId(), restoredChildTransaction2.controller.getInstanceId());
+        assertEquals(childTransaction1.getTransactionIndex(), restoredChildTransaction1.getTransactionIndex());
+        assertEquals(childTransaction1.controller().getInstanceId(), restoredChildTransaction1.controller().getInstanceId());
+        assertEquals(childTransaction2.getTransactionIndex(), restoredChildTransaction2.getTransactionIndex());
+        assertEquals(childTransaction2.controller().getInstanceId(), restoredChildTransaction2.controller().getInstanceId());
 
         assertTrue(parent.handleBack());
         assertEquals(1, childRouter.getBackstackSize());

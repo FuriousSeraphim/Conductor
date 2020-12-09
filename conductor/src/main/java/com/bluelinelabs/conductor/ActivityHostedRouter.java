@@ -5,9 +5,10 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
+import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListener;
 import com.bluelinelabs.conductor.internal.TransactionIndexer;
@@ -56,9 +57,12 @@ public class ActivityHostedRouter extends Router {
     }
 
     @Override
-    public void onActivityDestroyed(@NonNull Activity activity) {
-        super.onActivityDestroyed(activity);
-        lifecycleHandler = null;
+    public void onActivityDestroyed(@NonNull Activity activity, boolean isConfigurationChange) {
+        super.onActivityDestroyed(activity, isConfigurationChange);
+
+        if (!isConfigurationChange) {
+            lifecycleHandler = null;
+        }
     }
 
     @Override

@@ -1,10 +1,6 @@
 package com.bluelinelabs.conductor.demo.changehandler;
 
 import android.os.Bundle;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.transition.ChangeBounds;
@@ -14,6 +10,10 @@ import androidx.transition.Explode;
 import androidx.transition.Slide;
 import androidx.transition.Transition;
 import androidx.transition.TransitionSet;
+
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.changehandler.androidxtransition.SharedElementTransitionChangeHandler;
 

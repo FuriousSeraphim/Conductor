@@ -29,21 +29,18 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
+import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
+import androidx.core.content.ContextCompat;
+import androidx.transition.Transition;
+import androidx.transition.TransitionValues;
+
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.ViewTreeObserver.OnPreDrawListener;
 import android.view.animation.Interpolator;
-
-import androidx.annotation.ColorInt;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.core.content.ContextCompat;
-import androidx.transition.Transition;
-import androidx.transition.TransitionValues;
 
 import com.bluelinelabs.conductor.demo.util.AnimUtils;
 
@@ -57,13 +54,12 @@ import static android.view.View.MeasureSpec.makeMeasureSpec;
  * <p>
  * See: https://www.google.com/design/spec/motion/transforming-material.html#transforming-material-radial-transformation
  */
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class FabTransform extends Transition {
 
     private static final long DEFAULT_DURATION = 240L;
     private static final String PROP_BOUNDS = "plaid:fabTransform:bounds";
     private static final String[] TRANSITION_PROPERTIES = {
-        PROP_BOUNDS
+            PROP_BOUNDS
     };
 
     private final int color;
@@ -82,20 +78,20 @@ public class FabTransform extends Transition {
     }
 
     @Override
-    public void captureStartValues(@NonNull TransitionValues transitionValues) {
+    public void captureStartValues(TransitionValues transitionValues) {
         captureValues(transitionValues);
     }
 
     @Override
-    public void captureEndValues(@NonNull TransitionValues transitionValues) {
+    public void captureEndValues(TransitionValues transitionValues) {
         captureValues(transitionValues);
     }
 
     @Override
-    public Animator createAnimator(@NonNull final ViewGroup sceneRoot,
+    public Animator createAnimator(final ViewGroup sceneRoot,
                                    final TransitionValues startValues,
                                    final TransitionValues endValues) {
-        if (startValues == null || endValues == null) return null;
+        if (startValues == null || endValues == null)  return null;
 
         final Rect startBounds = (Rect) startValues.values.get(PROP_BOUNDS);
         final Rect endBounds = (Rect) endValues.values.get(PROP_BOUNDS);
@@ -104,7 +100,7 @@ public class FabTransform extends Transition {
         final View view = endValues.view;
         final Rect dialogBounds = fromFab ? endBounds : startBounds;
         final Interpolator fastOutSlowInInterpolator =
-            AnimUtils.getFastOutSlowInInterpolator();
+                AnimUtils.getFastOutSlowInInterpolator();
         final long duration = getDuration();
         final long halfDuration = duration / 2;
         final long twoThirdsDuration = duration * 2 / 3;
@@ -112,8 +108,8 @@ public class FabTransform extends Transition {
         if (!fromFab) {
             // Force measure / layout the dialog back to it's original bounds
             view.measure(
-                makeMeasureSpec(startBounds.width(), View.MeasureSpec.EXACTLY),
-                makeMeasureSpec(startBounds.height(), View.MeasureSpec.EXACTLY));
+                    makeMeasureSpec(startBounds.width(), View.MeasureSpec.EXACTLY),
+                    makeMeasureSpec(startBounds.height(), View.MeasureSpec.EXACTLY));
             view.layout(startBounds.left, startBounds.top, startBounds.right, startBounds.bottom);
         }
 
@@ -132,12 +128,12 @@ public class FabTransform extends Transition {
 
         // Add an icon overlay again to fake the appearance of the FAB
         final Drawable fabIcon =
-            ContextCompat.getDrawable(sceneRoot.getContext(), icon).mutate();
+                ContextCompat.getDrawable(sceneRoot.getContext(), icon).mutate();
         final int iconLeft = (dialogBounds.width() - fabIcon.getIntrinsicWidth()) / 2;
         final int iconTop = (dialogBounds.height() - fabIcon.getIntrinsicHeight()) / 2;
         fabIcon.setBounds(iconLeft, iconTop,
-            iconLeft + fabIcon.getIntrinsicWidth(),
-            iconTop + fabIcon.getIntrinsicHeight());
+                iconLeft + fabIcon.getIntrinsicWidth(),
+                iconTop + fabIcon.getIntrinsicHeight());
         if (!fromFab) fabIcon.setAlpha(0);
         view.getOverlay().add(fabIcon);
 
@@ -158,20 +154,20 @@ public class FabTransform extends Transition {
         final Animator circularReveal;
         if (fromFab) {
             circularReveal = ViewAnimationUtils.createCircularReveal(view,
-                view.getWidth() / 2,
-                view.getHeight() / 2,
-                startBounds.width() / 2,
-                (float) Math.hypot(endBounds.width() / 2, endBounds.height() / 2));
+                    view.getWidth() / 2,
+                    view.getHeight() / 2,
+                    startBounds.width() / 2,
+                    (float) Math.hypot(endBounds.width() / 2, endBounds.height() / 2));
             circularReveal.setInterpolator(
-                AnimUtils.getFastOutLinearInInterpolator());
+                    AnimUtils.getFastOutLinearInInterpolator());
         } else {
             circularReveal = ViewAnimationUtils.createCircularReveal(view,
-                view.getWidth() / 2,
-                view.getHeight() / 2,
-                (float) Math.hypot(startBounds.width() / 2, startBounds.height() / 2),
-                endBounds.width() / 2);
+                    view.getWidth() / 2,
+                    view.getHeight() / 2,
+                    (float) Math.hypot(startBounds.width() / 2, startBounds.height() / 2),
+                    endBounds.width() / 2);
             circularReveal.setInterpolator(
-                AnimUtils.getLinearOutSlowInInterpolator());
+                    AnimUtils.getLinearOutSlowInInterpolator());
 
             // Persist the end clip i.e. stay at FAB size after the reveal has run
             circularReveal.addListener(new AnimatorListenerAdapter() {
@@ -188,7 +184,7 @@ public class FabTransform extends Transition {
                             final int top = (view.getHeight() - endBounds.height()) / 2;
 
                             outline.setOval(
-                                left, top, left + endBounds.width(), top + endBounds.height());
+                                    left, top, left + endBounds.width(), top + endBounds.height());
 
                             if (!hasRun) {
                                 hasRun = true;
@@ -218,11 +214,11 @@ public class FabTransform extends Transition {
 
         // Translate to end position along an arc
         final Animator translate = ObjectAnimator.ofFloat(
-            view,
-            View.TRANSLATION_X,
-            View.TRANSLATION_Y,
-            fromFab ? getPathMotion().getPath(translationX, translationY, 0, 0)
-                : getPathMotion().getPath(0, 0, -translationX, -translationY));
+                view,
+                View.TRANSLATION_X,
+                View.TRANSLATION_Y,
+                fromFab ? getPathMotion().getPath(translationX, translationY, 0, 0)
+                        : getPathMotion().getPath(0, 0, -translationX, -translationY));
         translate.setDuration(duration);
         translate.setInterpolator(fastOutSlowInInterpolator);
 
@@ -234,7 +230,7 @@ public class FabTransform extends Transition {
             for (int i = vg.getChildCount() - 1; i >= 0; i--) {
                 final View child = vg.getChildAt(i);
                 final Animator fade =
-                    ObjectAnimator.ofFloat(child, View.ALPHA, fromFab ? 1f : 0f);
+                        ObjectAnimator.ofFloat(child, View.ALPHA, fromFab ? 1f : 0f);
                 if (fromFab) {
                     child.setAlpha(0f);
                 }
@@ -277,8 +273,8 @@ public class FabTransform extends Transition {
                     view.setTranslationZ(0);
 
                     view.measure(
-                        makeMeasureSpec(endBounds.width(), View.MeasureSpec.EXACTLY),
-                        makeMeasureSpec(endBounds.height(), View.MeasureSpec.EXACTLY));
+                            makeMeasureSpec(endBounds.width(), View.MeasureSpec.EXACTLY),
+                            makeMeasureSpec(endBounds.height(), View.MeasureSpec.EXACTLY));
                     view.layout(endBounds.left, endBounds.top, endBounds.right, endBounds.bottom);
                 }
 
@@ -292,6 +288,6 @@ public class FabTransform extends Transition {
         if (view == null || view.getWidth() <= 0 || view.getHeight() <= 0) return;
 
         transitionValues.values.put(PROP_BOUNDS, new Rect(view.getLeft(), view.getTop(),
-            view.getRight(), view.getBottom()));
+                view.getRight(), view.getBottom()));
     }
 }

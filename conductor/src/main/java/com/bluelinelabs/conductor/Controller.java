@@ -18,6 +18,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.bluelinelabs.conductor.internal.ClassUtils;
 import com.bluelinelabs.conductor.internal.RouterRequiringFunc;
 import com.bluelinelabs.conductor.internal.ViewAttachHandler;
@@ -31,10 +35,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-
-import androidx.annotation.IdRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 /**
  * A Controller manages portions of the UI. It is similar to an Activity or Fragment in that it manages its
@@ -108,10 +108,10 @@ public abstract class Controller {
         Controller controller;
         try {
             if (bundleConstructor != null) {
-                controller = (Controller)bundleConstructor.newInstance(args);
+                controller = (Controller) bundleConstructor.newInstance(args);
             } else {
                 //noinspection ConstantConditions
-                controller = (Controller)getDefaultConstructor(constructors).newInstance();
+                controller = (Controller) getDefaultConstructor(constructors).newInstance();
 
                 // Restore the args that existed before the last process death
                 if (args != null) {
@@ -190,7 +190,7 @@ public abstract class Controller {
      * the same container unless you have a great reason to do so (ex: ViewPagers).
      *
      * @param container The ViewGroup that hosts the child Router
-     * @param tag The router's tag or {@code null} if none is needed
+     * @param tag       The router's tag or {@code null} if none is needed
      */
     @NonNull
     public final Router getChildRouter(@NonNull ViewGroup container, @Nullable String tag) {
@@ -205,8 +205,8 @@ public abstract class Controller {
      * The only time this method will return {@code null} is when the child router does not exist prior
      * to calling this method and the createIfNeeded parameter is set to false.
      *
-     * @param container The ViewGroup that hosts the child Router
-     * @param tag The router's tag or {@code null} if none is needed
+     * @param container      The ViewGroup that hosts the child Router
+     * @param tag            The router's tag or {@code null} if none is needed
      * @param createIfNeeded If true, a router will be created if one does not yet exist. Else {@code null} will be returned in this case.
      */
     @Nullable
@@ -227,7 +227,7 @@ public abstract class Controller {
         if (childRouter == null) {
             if (createIfNeeded) {
                 childRouter = new ControllerHostedRouter(container.getId(), tag);
-                childRouter.setHost(this, container);
+                childRouter.setHostContainer(this, container);
                 childRouters.add(childRouter);
 
                 if (isPerformingExitTransition) {
@@ -235,7 +235,7 @@ public abstract class Controller {
                 }
             }
         } else if (!childRouter.hasHost()) {
-            childRouter.setHost(this, container);
+            childRouter.setHostContainer(this, container);
             childRouter.rebindIfNeeded();
         }
 
@@ -606,12 +606,12 @@ public abstract class Controller {
         Collections.sort(childTransactions, new Comparator<RouterTransaction>() {
             @Override
             public int compare(RouterTransaction o1, RouterTransaction o2) {
-                return o2.transactionIndex - o1.transactionIndex;
+                return o2.getTransactionIndex() - o1.getTransactionIndex();
             }
         });
 
         for (RouterTransaction transaction : childTransactions) {
-            Controller childController = transaction.controller;
+            Controller childController = transaction.controller();
 
             if (childController.isAttached() && childController.getRouter().handleBack()) {
                 return true;
@@ -758,8 +758,8 @@ public abstract class Controller {
         this.needsAttach = needsAttach;
     }
 
-    final void prepareForHostDetach(boolean wasAttached) {
-        needsAttach = wasAttached;
+    final void prepareForHostDetach() {
+        needsAttach = needsAttach || attached;
 
         for (ControllerHostedRouter router : childRouters) {
             router.prepareForHostDetach();
@@ -921,8 +921,8 @@ public abstract class Controller {
 
         for (ControllerHostedRouter childRouter : childRouters) {
             for (RouterTransaction childTransaction : childRouter.backstack) {
-                if (childTransaction.controller.awaitingParentAttach) {
-                    childTransaction.controller.attach(childTransaction.controller.view);
+                if (childTransaction.controller().awaitingParentAttach) {
+                    childTransaction.controller().attach(childTransaction.controller().view);
                 }
             }
 
@@ -981,7 +981,11 @@ public abstract class Controller {
 
             onDestroyView(view);
 
-            viewAttachHandler.unregisterAttachListener(view);
+            // viewAttachHandler may be null iff the controller was popped before we got here
+            if (viewAttachHandler != null) {
+                viewAttachHandler.unregisterAttachListener(view);
+            }
+
             viewAttachHandler = null;
             viewIsAttached = false;
 
@@ -1030,33 +1034,35 @@ public abstract class Controller {
 
             restoreViewState(view);
 
-            viewAttachHandler = new ViewAttachHandler(new ViewAttachListener() {
-                @Override
-                public void onAttached() {
-                    viewIsAttached = true;
-                    viewWasDetached = false;
-                    attach(view);
-                }
-
-                @Override
-                public void onDetached(boolean fromActivityStop) {
-                    viewIsAttached = false;
-                    viewWasDetached = true;
-
-                    if (!isDetachFrozen) {
-                        detach(view, false, fromActivityStop);
+            if (!isBeingDestroyed) {
+                viewAttachHandler = new ViewAttachHandler(new ViewAttachListener() {
+                    @Override
+                    public void onAttached() {
+                        viewIsAttached = true;
+                        viewWasDetached = false;
+                        attach(view);
                     }
-                }
 
-                @Override
-                public void onViewDetachAfterStop() {
-                    if (!isDetachFrozen) {
-                        detach(view, false, false);
+                    @Override
+                    public void onDetached(boolean fromActivityStop) {
+                        viewIsAttached = false;
+                        viewWasDetached = true;
+
+                        if (!isDetachFrozen) {
+                            detach(view, false, fromActivityStop);
+                        }
                     }
-                }
-            });
-            viewAttachHandler.listenForAttach(view);
-        } else if (retainViewMode == RetainViewMode.RETAIN_DETACH) {
+
+                    @Override
+                    public void onViewDetachAfterStop() {
+                        if (!isDetachFrozen) {
+                            detach(view, false, false);
+                        }
+                    }
+                });
+                viewAttachHandler.listenForAttach(view);
+            }
+        } else {
             restoreChildControllerHosts();
         }
 
@@ -1068,8 +1074,8 @@ public abstract class Controller {
             if (!childRouter.hasHost()) {
                 View containerView = view.findViewById(childRouter.getHostId());
 
-                if (containerView != null && containerView instanceof ViewGroup) {
-                    childRouter.setHost(this, (ViewGroup)containerView);
+                if (containerView instanceof ViewGroup) {
+                    childRouter.setHostContainer(this, (ViewGroup) containerView);
                     childRouter.rebindIfNeeded();
                 }
             }
@@ -1228,6 +1234,7 @@ public abstract class Controller {
         List<Bundle> childBundles = savedInstanceState.getParcelableArrayList(KEY_CHILD_ROUTERS);
         for (Bundle childBundle : childBundles) {
             ControllerHostedRouter childRouter = new ControllerHostedRouter();
+            childRouter.setHostController(this);
             childRouter.restoreInstanceState(childBundle);
             childRouters.add(childRouter);
         }
@@ -1359,15 +1366,23 @@ public abstract class Controller {
         return null;
     }
 
-    /** Modes that will influence when the Controller will allow its view to be destroyed */
+    /**
+     * Modes that will influence when the Controller will allow its view to be destroyed
+     */
     public enum RetainViewMode {
-        /** The Controller will release its reference to its view as soon as it is detached. */
+        /**
+         * The Controller will release its reference to its view as soon as it is detached.
+         */
         RELEASE_DETACH,
-        /** The Controller will retain its reference to its view when detached, but will still release the reference when a config change occurs. */
+        /**
+         * The Controller will retain its reference to its view when detached, but will still release the reference when a config change occurs.
+         */
         RETAIN_DETACH
     }
 
-    /** Allows external classes to listen for lifecycle events in a Controller */
+    /**
+     * Allows external classes to listen for lifecycle events in a Controller
+     */
     public static abstract class LifecycleListener {
 
         public void onChangeStart(@NonNull Controller controller, @NonNull ControllerChangeHandler changeHandler, @NonNull ControllerChangeType changeType) { }

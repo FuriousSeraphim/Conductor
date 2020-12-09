@@ -33,14 +33,6 @@ public final class MainActivity extends AppCompatActivity implements ActionBarPr
         if (!router.hasRootController()) {
             router.setRoot(RouterTransaction.with(new HomeController()));
         }
-
-        // uncomment to test #287 (the comment related to performPendingControllerChanges)
-//        if (router.getBackstackSize() == 1) {
-//            router.pushController(RouterTransaction.with(new TextController("Splash 1")));
-//            router.pushController(RouterTransaction.with(new TextController("Splash 2")));
-//        }
-//
-//        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 
     @Override

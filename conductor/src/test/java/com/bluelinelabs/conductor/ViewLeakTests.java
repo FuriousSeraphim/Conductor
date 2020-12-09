@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bluelinelabs.conductor.changehandler.SimpleSwapChangeHandler;
 import com.bluelinelabs.conductor.util.ActivityProxy;
 import com.bluelinelabs.conductor.util.TestController;
 
@@ -108,6 +109,25 @@ public class ViewLeakTests {
         activityProxy.stop(true).destroy();
 
         assertNull(controller.getView());
+    }
+
+    @Test
+    public void testViewRemovedIfLayeredNotRemovesFromViewOnPush() {
+        Controller controller = new TestController();
+        router.pushController(RouterTransaction.with(controller));
+
+        router.pushController(RouterTransaction.with(new TestController()).pushChangeHandler(new SimpleSwapChangeHandler(false)));
+
+        View view = controller.view;
+        assertNotNull(view.getParent());
+
+        router.pushController(RouterTransaction.with(new TestController()));
+
+        assertNotNull(view.getParent());
+
+        router.popToRoot();
+
+        assertNull(view.getParent());
     }
 
     public static class NeverAddChangeHandler extends ControllerChangeHandler {

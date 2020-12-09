@@ -25,6 +25,9 @@ import java.util.List;
 /**
  * A TransitionChangeHandler that facilitates using different Transitions for the entering view, the exiting view,
  * and shared elements between the two.
+ * <p/>
+ * Note that this class uses the <b>androidx</b> {@link Transition}. If you're using Android's platform transitions,
+ * consider using the {@code SharedElementTransitionChangeHandler} provided by the {@code android-transitions} Conductor module.
  */
 // Much of this class is based on FragmentTransition.java and FragmentTransitionCompat21.java from the Android support library
 public abstract class SharedElementTransitionChangeHandler extends TransitionChangeHandler {
@@ -251,7 +254,7 @@ public abstract class SharedElementTransitionChangeHandler extends TransitionCha
             if (enterTransition != null) {
                 enterTransition.setEpicenterCallback(new Transition.EpicenterCallback() {
                     @Override
-                    public Rect onGetEpicenter(Transition transition) {
+                    public Rect onGetEpicenter(@NonNull Transition transition) {
                         if (toEpicenter.isEmpty()) {
                             return null;
                         }
@@ -435,7 +438,7 @@ public abstract class SharedElementTransitionChangeHandler extends TransitionCha
                                        @Nullable final Transition sharedElementTransition, @Nullable final List<View> toSharedElements) {
         overallTransition.addListener(new Transition.TransitionListener() {
             @Override
-            public void onTransitionStart(Transition transition) {
+            public void onTransitionStart(@NonNull Transition transition) {
                 if (enterTransition != null && enteringViews != null) {
                     TransitionUtils.replaceTargets(enterTransition, enteringViews, null);
                 }
@@ -448,16 +451,16 @@ public abstract class SharedElementTransitionChangeHandler extends TransitionCha
             }
 
             @Override
-            public void onTransitionEnd(Transition transition) { }
+            public void onTransitionEnd(@NonNull Transition transition) { }
 
             @Override
-            public void onTransitionCancel(Transition transition) { }
+            public void onTransitionCancel(@NonNull Transition transition) { }
 
             @Override
-            public void onTransitionPause(Transition transition) { }
+            public void onTransitionPause(@NonNull Transition transition) { }
 
             @Override
-            public void onTransitionResume(Transition transition) { }
+            public void onTransitionResume(@NonNull Transition transition) { }
         });
     }
 

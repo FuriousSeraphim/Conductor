@@ -9,6 +9,7 @@ buildscript {
 
 apply plugin: 'com.novoda.bintray-release'
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 apply plugin: 'de.mobilej.unmock'
 
 def libVersionCode = Integer.parseInt(project.VERSION_CODE)
@@ -53,6 +54,7 @@ dependencies {
 
     api rootProject.ext.androidxAnnotations
     implementation rootProject.ext.androidxAppCompat
+    implementation rootProject.ext.kotlinStd
 
     lintChecks project(path: ':conductor-lint', configuration: 'lintChecks')
 }

@@ -16,10 +16,8 @@
 
 package com.bluelinelabs.conductor.demo.changehandler.transitions;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Path;
-import android.os.Build;
 import android.util.AttributeSet;
 
 import androidx.transition.ArcMotion;
@@ -31,7 +29,6 @@ import androidx.transition.ArcMotion;
  * <p>
  * See https://www.google.com/design/spec/motion/movement.html#movement-movement-within-screen-bounds
  */
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class GravityArcMotion extends ArcMotion {
 
     private static final float DEFAULT_MIN_ANGLE_DEGREES = 0;

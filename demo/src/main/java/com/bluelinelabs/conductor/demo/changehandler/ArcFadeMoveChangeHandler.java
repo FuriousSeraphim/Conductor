@@ -1,9 +1,6 @@
 package com.bluelinelabs.conductor.demo.changehandler;
 
 import android.os.Bundle;
-import android.view.View;
-import android.view.ViewGroup;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.transition.ArcMotion;
@@ -13,6 +10,9 @@ import androidx.transition.ChangeTransform;
 import androidx.transition.Fade;
 import androidx.transition.Transition;
 import androidx.transition.TransitionSet;
+
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.changehandler.androidxtransition.SharedElementTransitionChangeHandler;
 import com.bluelinelabs.conductor.internal.TransitionUtils;
@@ -26,8 +26,7 @@ public class ArcFadeMoveChangeHandler extends SharedElementTransitionChangeHandl
 
     private final ArrayList<String> sharedElementNames = new ArrayList<>();
 
-    public ArcFadeMoveChangeHandler() {
-    }
+    public ArcFadeMoveChangeHandler() { }
 
     public ArcFadeMoveChangeHandler(String... sharedElementNames) {
         Collections.addAll(this.sharedElementNames, sharedElementNames);
@@ -74,20 +73,16 @@ public class ArcFadeMoveChangeHandler extends SharedElementTransitionChangeHandl
             }
 
             @Override
-            public void onTransitionEnd(Transition transition) {
-            }
+            public void onTransitionEnd(Transition transition) { }
 
             @Override
-            public void onTransitionCancel(Transition transition) {
-            }
+            public void onTransitionCancel(Transition transition) { }
 
             @Override
-            public void onTransitionPause(Transition transition) {
-            }
+            public void onTransitionPause(Transition transition) { }
 
             @Override
-            public void onTransitionResume(Transition transition) {
-            }
+            public void onTransitionResume(Transition transition) { }
         });
 
         return transition;

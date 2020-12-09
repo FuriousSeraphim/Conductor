@@ -595,15 +595,15 @@ public class ControllerLifecycleCallbacksTests {
         Controller parent = new TestController();
         parent.setRetainViewMode(RetainViewMode.RETAIN_DETACH);
         router.pushController(RouterTransaction.with(parent)
-            .pushChangeHandler(MockChangeHandler.defaultHandler())
-            .popChangeHandler(MockChangeHandler.defaultHandler()));
+                .pushChangeHandler(MockChangeHandler.defaultHandler())
+                .popChangeHandler(MockChangeHandler.defaultHandler()));
 
         TestController child = new TestController();
         Router childRouter = parent.getChildRouter((ViewGroup)parent.getView().findViewById(TestController.VIEW_ID));
         childRouter
-            .setRoot(RouterTransaction.with(child)
-                .pushChangeHandler(new SimpleSwapChangeHandler())
-                .popChangeHandler(new SimpleSwapChangeHandler()));
+                .setRoot(RouterTransaction.with(child)
+                        .pushChangeHandler(new SimpleSwapChangeHandler())
+                        .popChangeHandler(new SimpleSwapChangeHandler()));
 
         Controller nextController = new TestController();
         router.pushController(RouterTransaction.with(nextController));

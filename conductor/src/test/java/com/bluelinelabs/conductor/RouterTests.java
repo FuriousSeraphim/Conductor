@@ -250,9 +250,9 @@ public class RouterTests {
         assertEquals(middleTransaction, fetchedBackstack.get(1));
         assertEquals(topTransaction, fetchedBackstack.get(2));
 
-        assertEquals(router, rootTransaction.controller.getRouter());
-        assertEquals(router, middleTransaction.controller.getRouter());
-        assertEquals(router, topTransaction.controller.getRouter());
+        assertEquals(router, rootTransaction.controller().getRouter());
+        assertEquals(router, middleTransaction.controller().getRouter());
+        assertEquals(router, topTransaction.controller().getRouter());
     }
 
     @Test
@@ -264,8 +264,8 @@ public class RouterTests {
         router.pushController(oldTopTransaction);
         assertEquals(2, router.getBackstackSize());
 
-        assertTrue(oldRootTransaction.controller.isAttached());
-        assertTrue(oldTopTransaction.controller.isAttached());
+        assertTrue(oldRootTransaction.controller().isAttached());
+        assertTrue(oldTopTransaction.controller().isAttached());
 
         RouterTransaction rootTransaction = RouterTransaction.with(new TestController());
         RouterTransaction middleTransaction = RouterTransaction.with(new TestController()).pushChangeHandler(MockChangeHandler.noRemoveViewOnPushHandler());
@@ -281,11 +281,11 @@ public class RouterTests {
         assertEquals(middleTransaction, fetchedBackstack.get(1));
         assertEquals(topTransaction, fetchedBackstack.get(2));
 
-        assertFalse(oldRootTransaction.controller.isAttached());
-        assertFalse(oldTopTransaction.controller.isAttached());
-        assertTrue(rootTransaction.controller.isAttached());
-        assertTrue(middleTransaction.controller.isAttached());
-        assertTrue(topTransaction.controller.isAttached());
+        assertFalse(oldRootTransaction.controller().isAttached());
+        assertFalse(oldTopTransaction.controller().isAttached());
+        assertTrue(rootTransaction.controller().isAttached());
+        assertTrue(middleTransaction.controller().isAttached());
+        assertTrue(topTransaction.controller().isAttached());
     }
 
     @Test
@@ -304,9 +304,9 @@ public class RouterTests {
         assertEquals(1, router.getBackstackSize());
         assertEquals(rootTransaction, router.getBackstack().get(0));
 
-        assertTrue(rootTransaction.controller.isAttached());
-        assertFalse(transaction1.controller.isAttached());
-        assertFalse(transaction2.controller.isAttached());
+        assertTrue(rootTransaction.controller().isAttached());
+        assertFalse(transaction1.controller().isAttached());
+        assertFalse(transaction2.controller().isAttached());
     }
 
     @Test
@@ -325,9 +325,9 @@ public class RouterTests {
         assertEquals(1, router.getBackstackSize());
         assertEquals(rootTransaction, router.getBackstack().get(0));
 
-        assertTrue(rootTransaction.controller.isAttached());
-        assertFalse(transaction1.controller.isAttached());
-        assertFalse(transaction2.controller.isAttached());
+        assertTrue(rootTransaction.controller().isAttached());
+        assertFalse(transaction1.controller().isAttached());
+        assertFalse(transaction2.controller().isAttached());
     }
 
     @Test
@@ -364,8 +364,8 @@ public class RouterTests {
 
         assertEquals(2, router.getBackstackSize());
 
-        assertTrue(rootTransaction.controller.isAttached());
-        assertTrue(topTransaction.controller.isAttached());
+        assertTrue(rootTransaction.controller().isAttached());
+        assertTrue(topTransaction.controller().isAttached());
 
         List<RouterTransaction> fetchedBackstack = router.getBackstack();
         assertEquals(rootTransaction, fetchedBackstack.get(0));
@@ -381,9 +381,9 @@ public class RouterTests {
         assertEquals(rootTransaction, fetchedBackstack.get(0));
         assertEquals(newTopTransaction, fetchedBackstack.get(1));
 
-        assertTrue(rootTransaction.controller.isAttached());
-        assertFalse(topTransaction.controller.isAttached());
-        assertTrue(newTopTransaction.controller.isAttached());
+        assertTrue(rootTransaction.controller().isAttached());
+        assertFalse(topTransaction.controller().isAttached());
+        assertTrue(newTopTransaction.controller().isAttached());
     }
 
     @Test
@@ -394,14 +394,14 @@ public class RouterTests {
         List<RouterTransaction> backstack = Arrays.asList(transaction1, transaction2);
         router.setBackstack(backstack, null);
 
-        assertEquals(1, transaction1.transactionIndex);
-        assertEquals(2, transaction2.transactionIndex);
+        assertEquals(1, transaction1.getTransactionIndex());
+        assertEquals(2, transaction2.getTransactionIndex());
 
         backstack = Arrays.asList(transaction2, transaction1);
         router.setBackstack(backstack, null);
 
-        assertEquals(1, transaction2.transactionIndex);
-        assertEquals(2, transaction1.transactionIndex);
+        assertEquals(1, transaction2.getTransactionIndex());
+        assertEquals(2, transaction1.getTransactionIndex());
 
         router.handleBack();
 
@@ -425,14 +425,14 @@ public class RouterTests {
         List<RouterTransaction> backstack = Arrays.asList(transaction1, transaction2);
         childRouter.setBackstack(backstack, null);
 
-        assertEquals(2, transaction1.transactionIndex);
-        assertEquals(3, transaction2.transactionIndex);
+        assertEquals(2, transaction1.getTransactionIndex());
+        assertEquals(3, transaction2.getTransactionIndex());
 
         backstack = Arrays.asList(transaction2, transaction1);
         childRouter.setBackstack(backstack, null);
 
-        assertEquals(2, transaction2.transactionIndex);
-        assertEquals(3, transaction1.transactionIndex);
+        assertEquals(2, transaction2.getTransactionIndex());
+        assertEquals(3, transaction1.getTransactionIndex());
 
         childRouter.handleBack();
 
@@ -490,42 +490,6 @@ public class RouterTests {
         router.popToRoot();
         assertFalse(controller1.isBeingDestroyed());
         assertTrue(controller3.isBeingDestroyed());
-    }
-
-    @Test
-    public void testReattachNestedBackstackCorrectly() {
-        Controller rootController = new TestController();
-        Controller childController1 = new TestController();
-        Controller childController2 = new TestController();
-        Controller childController11 = new TestController();
-        Controller childController12 = new TestController();
-        Controller childController13 = new TestController();
-
-
-        router.setRoot(RouterTransaction.with(rootController));
-        Router router1 = rootController.getChildRouter(rootController.getView().<ViewGroup>findViewById(TestController.CHILD_VIEW_ID_1));
-        router1.setRoot(RouterTransaction.with(childController1));
-        Router router2 = childController1.getChildRouter(childController1.getView().<ViewGroup>findViewById(TestController.CHILD_VIEW_ID_1));
-        router2.setRoot(RouterTransaction.with(childController11));
-        router2.pushController(RouterTransaction.with(childController12).pushChangeHandler(new HorizontalChangeHandler()).popChangeHandler(new HorizontalChangeHandler()));
-        router2.pushController(RouterTransaction.with(childController13).pushChangeHandler(new HorizontalChangeHandler()).popChangeHandler(new HorizontalChangeHandler()));
-        router1.pushController(RouterTransaction.with(childController2));
-
-        assertTrue(rootController.isAttached());
-        assertFalse(childController1.isAttached());
-        assertFalse(childController11.isAttached());
-        assertFalse(childController12.isAttached());
-        assertFalse(childController13.isAttached());
-        assertTrue(childController2.isAttached());
-
-        assertTrue(router.handleBack());
-
-        assertTrue(rootController.isAttached());
-        assertTrue(childController1.isAttached());
-        assertFalse(childController11.isAttached());
-        assertFalse(childController12.isAttached());
-        assertTrue(childController13.isAttached());
-        assertFalse(childController2.isAttached());
     }
 
 }

@@ -4,12 +4,6 @@ import android.content.Intent;
 import android.graphics.PorterDuff.Mode;
 import android.net.Uri;
 import android.os.Bundle;
-import androidx.annotation.ColorRes;
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.core.view.ViewCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -23,6 +17,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.ColorRes;
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bluelinelabs.conductor.ControllerChangeHandler;
 import com.bluelinelabs.conductor.ControllerChangeType;
@@ -47,10 +48,12 @@ public class HomeController extends BaseController {
         SHARED_ELEMENT_TRANSITIONS("Shared Element Demos", R.color.purple_300),
         CHILD_CONTROLLERS("Child Controllers", R.color.orange_300),
         VIEW_PAGER("ViewPager", R.color.green_300),
-        TARGET_CONTROLLER("Target Controller", R.color.pink_300),
-        MULTIPLE_CHILD_ROUTERS("Multiple Child Routers", R.color.deep_orange_300),
-        MASTER_DETAIL("Master Detail", R.color.grey_300),
-        DRAG_DISMISS("Drag Dismiss", R.color.lime_300);
+        VIEW_PAGER_2("ViewPager2", R.color.pink_300),
+        TARGET_CONTROLLER("Target Controller", R.color.deep_orange_300),
+        MULTIPLE_CHILD_ROUTERS("Multiple Child Routers", R.color.grey_300),
+        MASTER_DETAIL("Master Detail", R.color.lime_300),
+        DRAG_DISMISS("Drag Dismiss", R.color.teal_300),
+        EXTERNAL_MODULES("Bonus Modules", R.color.deep_purple_300);
 
         String title;
         @ColorRes int color;
@@ -180,7 +183,12 @@ public class HomeController extends BaseController {
                                 .popChangeHandler(new FadeChangeHandler()));
                 break;
             case VIEW_PAGER:
-                getRouter().pushController(RouterTransaction.with(new PagerController())
+                getRouter().pushController(RouterTransaction.with(new ViewPagerController())
+                        .pushChangeHandler(new FadeChangeHandler())
+                        .popChangeHandler(new FadeChangeHandler()));
+                break;
+            case VIEW_PAGER_2:
+                getRouter().pushController(RouterTransaction.with(new ViewPager2Controller())
                         .pushChangeHandler(new FadeChangeHandler())
                         .popChangeHandler(new FadeChangeHandler()));
                 break;
