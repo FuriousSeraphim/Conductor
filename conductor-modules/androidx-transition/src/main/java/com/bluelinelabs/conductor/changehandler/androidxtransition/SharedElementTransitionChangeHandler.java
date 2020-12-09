@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * A TransitionChangeHandler that facilitates using different Transitions for the entering view, the exiting view,
  * and shared elements between the two.
- * <p/>
+ * <p>
  * Note that this class uses the <b>androidx</b> {@link Transition}. If you're using Android's platform transitions,
  * consider using the {@code SharedElementTransitionChangeHandler} provided by the {@code android-transitions} Conductor module.
  */

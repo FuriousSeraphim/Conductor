@@ -574,7 +574,6 @@ public abstract class Controller {
 
     /**
      * Gets whether you should show UI with rationale for requesting a permission.
-     * {@see android.app.Activity#shouldShowRequestPermissionRationale(String)}
      *
      * @param permission A permission this Controller has requested
      */

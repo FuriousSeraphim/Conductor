@@ -7,7 +7,7 @@ ext {
     picassoVersion = '2.5.2'
     leakCanaryVersion = '1.5.4'
     junitVersion = '4.12'
-    agpVersion = "4.1.0"
+    agpVersion = "4.1.1"
     lintVersion = agpVersion.replaceFirst(~/\d*/) { version ->
         // the major version of lint is always 23 version higher than the major version of agp
         version.toInteger() + 23
