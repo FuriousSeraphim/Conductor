@@ -6,20 +6,9 @@ buildscript {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'com.github.panpf.bintray-publish'
 
 def libVersionCode = Integer.parseInt(project.VERSION_CODE)
 def libVersionName = project.VERSION_NAME
-
-publish {
-    userOrg = 'furiousseraphim'
-    repoName = 'Conductor'
-    groupId = 'com.furiousseraphim.conductor'
-    artifactId = 'conductor-androidx-transition'
-    publishVersion = libVersionName
-    desc = 'AndroidX transition'
-    website = 'https://github.com/FuriousSeraphim/Conductor'
-}
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
